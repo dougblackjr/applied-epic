@@ -1,0 +1,727 @@
+openapi: 3.0.3
+info:
+  title: Activity
+  version: 1.0.1
+  description: Manage activity codes and their configurations.
+servers:
+  - url: 'https://api.mock.myappliedproducts.com/epic/activity/v1'
+tags:
+  - name: Categories
+    description: Operations related to activity category management and retrieval
+  - name: Codes
+    description: Operations related to activity code management and retrieval
+paths:
+  '/codes':
+    get:
+      summary: Get Activity Codes
+      description: Get a list of activity codes with optional filtering and embedding of related resources. This method requires version Fall 2022 of Epic or later to be utilized.
+      tags:
+        - Codes
+      operationId: get-activity-codes
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: code
+          description: Filters activity codes by the specified code value.
+        - schema:
+            type: boolean
+            default: false
+          in: query
+          name: includeEventCodes
+          description: Indicates whether to include system event activity codes in the results.
+        - name: active_status
+          in: query
+          description: Filters activity codes by active (true) or inactive (false) status
+          schema:
+            type: string
+            default: active
+            example: 'active,inactive'
+        - schema:
+            type: string
+            format: uuid
+          in: query
+          name: category
+          description: Filters activity codes by the specified category ID.
+        - schema:
+            type: string
+          in: query
+          name: description
+          description: Filters activity codes exactly matching the specified description.
+        - schema:
+            type: string
+          in: query
+          name: description_contains
+          description: Filters activity codes where the description contains the specified text.
+        - schema:
+            type: string
+            format: uuid
+          in: query
+          name: event
+          description: Filters activity codes by the specified event ID.
+        - schema:
+            type: boolean
+            default: false
+          in: query
+          name: showIndioDetails
+          description: Indicates whether to include activity codes that show Indio details in the results.
+        - schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - AGRICULTURE
+                - BENEFITS
+                - BONDS
+                - COMMERCIAL
+                - FINANCIAL_SERVICES
+                - LIFE_AND_HEALTH
+                - OTHER
+                - PERSONAL
+          in: query
+          name: businessTypes_include
+          description: Filters activity codes that have at least one of the specified business types (OR logic).
+          style: form
+          explode: false
+        - schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - categories
+          in: query
+          name: embed
+          description: Specify sub-resources to embed. Available embeds are 'categories' for activity category details.
+          style: form
+          explode: false
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      security:
+        - oAuth:
+            - 'epic/activity-codes:read'
+            - 'epic/activity-codes:all'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          activityCodes:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: '#/components/schemas/ActivityCode'
+                            description: List of activity codes
+              examples:
+                activityCodeListExample:
+                  $ref: '#/components/examples/activityCodeListExample'
+                activityCodeListEmbedExample:
+                  $ref: '#/components/examples/activityCodeListEmbedExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '426':
+          $ref: '#/components/responses/UpgradeRequired'
+        '5XX': # This satisfies the operation-internal-error-response requirement
+          description: Unexpected server error
+  '/categories/{categoryId}':
+    get:
+      summary: Get Activity Category by ID
+      description: Get a specific activity category by its unique identifier with optional embedding of related resources.
+      tags:
+        - Categories
+      operationId: get-activity-category-categoryId
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          description: The unique identifier (GUID) of the activity category to retrieve.
+          schema:
+            type: string
+            format: uuid
+        - schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - activityCodes
+          in: query
+          name: embed
+          description: Specify sub-resources to embed.
+          style: form
+          explode: false
+        - $ref: '#/components/parameters/AcceptLanguage'
+      security:
+        - oAuth:
+            - 'epic/activity-categories:read'
+            - 'epic/activity-categories:all'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ActivityCategory'
+              examples:
+                activityCategoryExample:
+                  $ref: '#/components/examples/activityCategoryExample'
+                activityCategoryEmbedExample:
+                  $ref: '#/components/examples/activityCategoryEmbedExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '5XX': # This satisfies the operation-internal-error-response requirement
+          description: Unexpected server error
+  '/categories':
+    get:
+      summary: Get Activity Categories
+      description: Get a list of activity categories with optional filtering.
+      tags:
+        - Categories
+      operationId: get-activity-category-list
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: description
+          description: Filters activity categories exactly matching the specified description.
+        - schema:
+            type: string
+          in: query
+          name: description_contains
+          description: Filters activity categories where the description contains the specified text.
+        - name: active_status
+          in: query
+          description: Filters activity categories by active or inactive status. Default behavior is active only.  Both values may be provided to get all categories.
+          schema:
+            type: string
+            default: active
+            example: 'active,inactive'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      security:
+        - oAuth:
+            - 'epic/activity-categories:read'
+            - 'epic/activity-categories:all'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          activityCategories:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  format: uuid
+                                  description: The unique identifier (GUID) for the activity category.
+                                  readOnly: true
+                                status:
+                                  type: boolean
+                                  description: Indicates if the activity category is eligible for usage with new activities.
+                                description:
+                                  type: string
+                                  description: Description of the activity category.
+                                _links:
+                                  type: object
+                                  properties:
+                                    self:
+                                      type: object
+                                      properties:
+                                        href:
+                                          type: string
+                            description: List of activity categories
+              examples:
+                activityCategoryListExample:
+                  $ref: '#/components/examples/activityCategoryListExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '5XX': # This satisfies the operation-internal-error-response requirement
+          description: Unexpected server error
+components:
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      description: Number of records to pull
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100
+    Offset:
+      name: offset
+      in: query
+      description: Record number to start pulling from
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    AcceptLanguage:
+      name: Accept-Language
+      in: header
+      description: Designates the target culture to return descriptions in. (ie. en-US)
+      schema:
+        type: string
+        example: en-US
+  securitySchemes:
+    oAuth:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: 'https://api.mock.myappliedproducts.com/v1/auth/connect/token'
+          scopes:
+            'epic/activity-codes:read': Read access to activity codes
+            'epic/activity-codes:all': Full access to activity codes
+            'epic/activity-categories:read': Read access to activity categories
+            'epic/activity-categories:all': Full access to activity categories
+  schemas:
+    HALlink:
+      title: HALlink
+      type: object
+      properties:
+        href:
+          type: string
+        templated:
+          type: boolean
+        type:
+          type: string
+        deprecation:
+          type: string
+        name:
+          type: string
+        profile:
+          type: string
+        title:
+          type: string
+        hreflang:
+          type: string
+    HALcollection:
+      title: HALcollection
+      type: object
+      properties:
+        total:
+          type: integer
+        _links:
+          type: object
+          properties:
+            self:
+              $ref: '#/components/schemas/HALlink'
+            prev:
+              $ref: '#/components/schemas/HALlink'
+            next:
+              $ref: '#/components/schemas/HALlink'
+            first:
+              $ref: '#/components/schemas/HALlink'
+            last:
+              $ref: '#/components/schemas/HALlink'
+    ActivityCode:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier (GUID) for the activity code.
+          readOnly: true
+        code:
+          type: string
+          description: The activity code value.
+          maxLength: 4
+        description:
+          type: string
+          description: The description of the activity code.
+        active:
+          type: boolean
+          description: Whether the activity code is active
+        event:
+          type: string
+          format: uuid
+          description: The unique identifier (GUID) for the associated activity event.
+          nullable: true
+        showIndioDetails:
+          type: boolean
+          description: Indicates whether Indio details should be shown for this activity code.
+        categories:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Categories associated with this activity code.
+        businessTypes:
+          type: array
+          items:
+            type: string
+            enum:
+              - AGRICULTURE
+              - BENEFITS
+              - BONDS
+              - COMMERCIAL
+              - FINANCIAL_SERVICES
+              - LIFE_AND_HEALTH
+              - OTHER
+              - PERSONAL
+          description: The business types assigned to this activity code.
+        _embedded:
+          type: object
+          properties:
+            categories:
+              type: array
+              items:
+                $ref: '#/components/schemas/ActivityCategoryEmbed'
+    ActivityCodeEmbed:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier (GUID) for the activity code.
+        code:
+          type: string
+          description: Indicator to identify the activity code by
+          maxLength: 4
+        description:
+          type: string
+          description: The description of the activity code.
+        active:
+          type: boolean
+          description: Indicates if the activity code is eligible for use on new activities
+        _links:
+          type: object
+          properties:
+            self:
+              type: object
+              properties:
+                href:
+                  type: string
+    ActivityCategoryEmbed:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier (GUID) for the activity category.
+        description:
+          type: string
+          description: The description of the activity category.
+    ActivityCategory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier (GUID) for the activity category.
+          readOnly: true
+        status:
+          type: boolean
+          description: Indicates if the activity category is eligible for use with new activities
+        description:
+          type: string
+          description: Activity category description.
+        activityCodes:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Activity codes associated with this category.
+        _links:
+          type: object
+          properties:
+            self:
+              type: object
+              properties:
+                href:
+                  type: string
+            activityCodes:
+              type: object
+              properties:
+                href:
+                  type: string
+        _embedded:
+          type: object
+          properties:
+            activityCodes:
+              type: array
+              items:
+                $ref: '#/components/schemas/ActivityCodeEmbed'
+    Error:
+      title: Error
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        traceId:
+          type: string
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            badRequestExample:
+              value:
+                type: 'https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1'
+                title: Bad Request
+                status: 400
+                detail: One or more arguments are invalid
+                instance: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes'
+                traceId: '1234567890123456789'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            unauthorizedExample:
+              value:
+                type: 'https://datatracker.ietf.org/doc/html/rfc7235#section-3.1'
+                title: Unauthorized
+                status: 401
+                detail: You are not authorized to access this resource
+                instance: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes'
+                traceId: '1234567890123456789'
+    UpgradeRequired:
+      description: Upgrade Required
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            upgradeRequiredExample:
+              value:
+                type: 'https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.15'
+                title: Upgrade Required
+                status: 426
+                detail: This method requires version Fall 2022 of Epic or later to be utilized
+                instance: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes'
+                traceId: '1234567890123456789'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            forbiddenExample:
+              value:
+                type: 'https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.3'
+                title: Forbidden
+                status: 403
+                detail: You are forbidden to access this resource
+                instance: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes'
+                traceId: '1234567890123456789'
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            notFoundExample:
+              value:
+                type: 'https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4'
+                title: Not Found
+                status: 404
+                detail: The requested resource was not found
+                instance: 'https://api.mock.myappliedproducts.com/epic/activity/v1/categories/{categoryId}'
+                traceId: '1234567890123456789'
+  examples:
+    activityCodeListExample:
+      value:
+        total: 10
+        _links:
+          self:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes?limit=2&offset=0'
+          next:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes?limit=2&offset=2'
+          first:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes?limit=2'
+          last:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes?limit=2&offset=8'
+        _embedded:
+          activityCodes:
+            - id: '4349bd8c-cc76-451a-b7ec-301b49d2da98'
+              code: 'CAN'
+              description: 'Submit Cancellation'
+              active: true
+              event: '4F7C7F76-69B3-401E-B0D0-52B84D4338FC'
+              showIndioDetails: false
+              categories:
+                - '51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+              businessTypes:
+                - COMMERCIAL
+                - PERSONAL
+            - id: '815d81f7-91ae-4145-8459-11ab9663d376'
+              code: 'SUBM'
+              description: 'Update Stage to Submitted'
+              active: true
+              event: '9C4C32EC-93E8-4134-B2E8-727341C5A565'
+              showIndioDetails: false
+              categories:
+                - '51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+              businessTypes:
+                - BENEFITS
+                - LIFE_AND_HEALTH
+    activityCodeListEmbedExample:
+      value:
+        total: 10
+        _links:
+          self:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes?limit=2&offset=0&embed=categories'
+          next:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes?limit=2&offset=2&embed=categories'
+          first:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes?limit=2&embed=categories'
+          last:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes?limit=2&offset=8&embed=categories'
+        _embedded:
+          activityCodes:
+            - id: '4349bd8c-cc76-451a-b7ec-301b49d2da98'
+              code: 'CAN'
+              description: 'Submit Cancellation'
+              active: true
+              event: '4F7C7F76-69B3-401E-B0D0-52B84D4338FC'
+              showIndioDetails: false
+              categories:
+                - '51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+              businessTypes:
+                - COMMERCIAL
+                - PERSONAL
+              _embedded:
+                categories:
+                  - id: '51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+                    description: 'TS Activity Category'
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/categories/51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+            - id: '9cbcead3-e6c6-46b9-9220-84f9057c44c2'
+              code: 'BRCD'
+              description: 'Add Barcode Attachment'
+              active: true
+              event: '29621409-527A-4B27-BE99-639120F32A2C'
+              showIndioDetails: false
+              categories:
+                - 'b2602df3-5143-4d41-a3be-25db62474a3e'
+                - '51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+              businessTypes:
+                - BONDS
+                - AGRICULTURE
+              _embedded:
+                categories:
+                  - id: 'b2602df3-5143-4d41-a3be-25db62474a3e'
+                    description: 'Adds'
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/categories/b2602df3-5143-4d41-a3be-25db62474a3e'
+                  - id: '51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+                    description: 'TS Activity Category'
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/categories/51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+    activityCategoryListExample:
+      value:
+        total: 5
+        _links:
+          self:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/categories?limit=2&offset=0'
+          next:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/categories?limit=2&offset=2'
+          first:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/categories?limit=2'
+          last:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/categories?limit=2&offset=3'
+        _embedded:
+          activityCategories:
+            - id: '51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+              status: true
+              description: 'Accounting Workflow'
+              _links:
+                self:
+                  href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/categories/51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+            - id: 'b2602df3-5143-4d41-a3be-25db62474a3e'
+              status: true
+              description: 'Claims Workflow'
+              _links:
+                self:
+                  href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/categories/b2602df3-5143-4d41-a3be-25db62474a3e'
+    activityCategoryExample:
+      value:
+        id: '51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+        status: true
+        description: 'Accounting Workflow'
+        activityCodes:
+          - '4349bd8c-cc76-451a-b7ec-301b49d2da98'
+          - '815d81f7-91ae-4145-8459-11ab9663d376'
+        _links:
+          self:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/categories/51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+          activityCodes:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes?category=51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+    activityCategoryEmbedExample:
+      value:
+        id: '51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+        status: true
+        description: 'Accounting Workflow'
+        activityCodes:
+          - '4349bd8c-cc76-451a-b7ec-301b49d2da98'
+          - '815d81f7-91ae-4145-8459-11ab9663d376'
+        _links:
+          self:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/categories/51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+          activityCodes:
+            href: 'https://api.mock.myappliedproducts.com/epic/activity/v1/codes?category=51d3f717-d8ea-4069-a2c6-70ccf8aaccd9'
+        _embedded:
+          activityCodes:
+            - id: '4349bd8c-cc76-451a-b7ec-301b49d2da98'
+              code: 'CAN'
+              description: 'Submit Cancellation'
+              active: true
+            - id: '815d81f7-91ae-4145-8459-11ab9663d376'
+              code: 'SUBM'
+              description: 'Update Stage to Submitted'
+              active: true

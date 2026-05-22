@@ -1,0 +1,484 @@
+openapi: 3.0.3
+info:
+  title: Opportunities
+  version: "1.0.1"
+  description: Visibility into opportunities, primarily for use in support of other resources, such as Attachments
+servers:
+  - url: "https://api.mock.myappliedproducts.com/epic/opportunity/v1"
+paths:
+  /opportunities:
+    get:
+      summary: Get Opportunities
+      operationId: get-opportunities
+      description: Get list of opportunities
+      parameters:
+        - $ref: "#/components/parameters/CultureCode"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Embed"
+        - schema:
+            type: string
+          in: query
+          name: description
+          description: Finds opportunities exactly matching the specified description
+        - schema:
+            type: string
+          in: query
+          name: description_contains
+          description: Finds opportunities containing the specified description
+        - schema:
+            type: string
+          in: query
+          name: client
+          description: Finds opportunities associated to the specified client
+        - schema:
+            type: string
+            format: date
+            example: "2022-09-27"
+          in: query
+          name: targetedCloseBy_before
+          description: Finds opportunities with target close date before the specified date
+        - schema:
+            type: string
+            format: date
+            example: "2022-09-27"
+          in: query
+          name: targetedCloseBy_after
+          description: Finds opportunities with target close date after the specified date
+        - schema:
+            type: string
+            format: date
+            example: "2022-09-27"
+          in: query
+          name: targetedCloseBy
+          description: Finds opportunities with target close date matches the specified date
+      tags: []
+      responses:
+        "200":
+          description: OK
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/HALcollection"
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          opportunities:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: "#/components/schemas/Opportunity"
+                                - $ref: "#/components/schemas/HALobject"
+              examples:
+                ListOpportunities:
+                  $ref: "#/components/examples/getResponseForOpportunities"
+                ListOpportunities with Embed:
+                  $ref: "#/components/examples/getResponseForOpportunitiesWithEmbed"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+      x-stoplight:
+        id: w7yl6h81epi7h
+      security:
+        - oAuth:
+            - "epic/opportunities:read"
+            - "epic/opportunities:all"
+    parameters: []
+  /opportunities/{opportunityId}:
+    parameters:
+      - name: opportunityId
+        in: path
+        description: The unique identifier of the opportunity
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get Opportunity by ID
+      operationId: get-opportunity-by-id
+      description: Get opportunity by its ID.
+      parameters:
+        - $ref: '#/components/parameters/CultureCode'
+        - $ref: '#/components/parameters/Embed'
+      responses:
+        '200':
+          description: OK
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Opportunity'
+                  - $ref: '#/components/schemas/HALobject'
+              examples:
+                GetOpportunity:
+                  $ref: '#/components/examples/getResponseForOpportunityById'
+                GetOpportunityWithEmbed:
+                  $ref: '#/components/examples/getResponseForOpportunityByIdWithEmbed'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - oAuth:
+            - 'epic/opportunities:read'
+            - 'epic/opportunities:all'
+
+components:
+  schemas:
+    Error:
+      type: object
+      title: ""
+      readOnly: true
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        traceId:
+          type: string
+        additionalDetails:
+          type: array
+          items:
+            type: object
+      description: Common error response
+    Opportunity:
+      title: Opportunity
+      x-stoplight:
+        id: bmtf2gko65wgg
+      type: object
+      required:
+        - description
+      properties:
+        id:
+          type: string
+          x-stoplight:
+            id: x4g8qgwfqqbf0
+          format: uuid
+          description: |
+            The unique identifier (GUID) that represents the opportunity.
+        description:
+          type: string
+          x-stoplight:
+            id: 2w17wbhcyjdlc
+          description: Description of the opportunity
+          maxLength: 125
+        client:
+          type: string
+          x-stoplight:
+            id: 7cynokemnycz8
+          format: uuid
+          description: Unique identifier specifying the client associated to the opportunity
+          readOnly: true
+        targetedCloseBy:
+          type: string
+          x-stoplight:
+            id: xfqc4r7gyf7or
+          format: date
+          description: Targeted close date for the opportunity
+    HALlink:
+      title: HALlink
+      type: object
+      properties:
+        href:
+          type: string
+        templated:
+          type: boolean
+        type:
+          type: string
+        deprecation:
+          type: string
+        name:
+          type: string
+        profile:
+          type: string
+        title:
+          type: string
+        hreflang:
+          type: string
+    HALobject:
+      title: HALobject
+      x-stoplight:
+        id: c4juh43c5aevg
+      type: object
+      properties:
+        _links:
+          type: object
+          x-stoplight:
+            id: uazwjzgxtbvhs
+          additionalProperties:
+            $ref: "#/components/schemas/HALlink"
+        _embedded:
+          type: object
+          x-stoplight:
+            id: jgv5pv4n8v3dw
+    HALcollection:
+      title: HALcollection
+      x-stoplight:
+        id: z8n3p42zxakb8
+      type: object
+      properties:
+        total:
+          type: integer
+        _links:
+          type: object
+          properties:
+            self:
+              $ref: "#/components/schemas/HALlink"
+            prev:
+              $ref: "#/components/schemas/HALlink"
+            next:
+              $ref: "#/components/schemas/HALlink"
+            first:
+              $ref: "#/components/schemas/HALlink"
+            last:
+              $ref: "#/components/schemas/HALlink"
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            unauthorizedExample:
+              value:
+                type: "https://api.appliedsystems.com/doc/problem/unauthorized"
+                title: Unauthorized
+                status: 401
+                detail: You are not authorized to access this resource
+                instance: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities"
+                traceId: "1234567890123456789"
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            forbiddenExample:
+              value:
+                type: "https://api.appliedsystems.com/doc/problem/forbidden"
+                title: Forbidden
+                status: 403
+                detail: You are forbidden to access this resource
+                instance: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities"
+                traceId: "1234567890123456789"
+    BadRequest:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            badRequestExample:
+              value:
+                type: "https://api.appliedsystems.com/doc/problem/badrequest"
+                title: Bad Request
+                status: 400
+                detail: One or more arguments are invalid
+                instance: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities"
+                traceId: "1234567890123456789"
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            notFoundExample:
+              value:
+                type: "https://api.appliedsystems.com/doc/problem/notfound"
+                title: Not Found
+                status: 404
+                detail: The specified resource was not found
+                instance: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities"
+                traceId: "1234567890123456789"
+  headers:
+    Asi-Trace-Id:
+      description: Applied generated header containing a unique identifier used to correlate the logs generated during a workflow.
+      schema:
+        type: string
+    Asi-Client-Correlation-Id:
+      description: Caller supplied header containing an identifier used to correlate the logs generated during a workflow.
+      schema:
+        type: string
+  parameters:
+    CultureCode:
+      name: Accept-Language
+      in: header
+      description: Designates the target culture to return descriptions in. (ie. en-US)
+      schema:
+        type: string
+        example: en-US
+    Offset:
+      name: offset
+      in: query
+      description: Record number to start pulling from
+      schema:
+        type: integer
+        minimum: 0
+    Limit:
+      name: limit
+      in: query
+      description: Number of records to pull.
+      schema:
+        type: integer
+        default: 100
+        minimum: 1
+        maximum: 500
+    Embed:
+      name: embed
+      in: query
+      required: false
+      schema:
+        type: string
+        example: client
+      description: Specify a sub-resource to embed
+  securitySchemes:
+    oAuth:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: "https://api.mock.myappliedproducts.com/v1/auth/connect/token"
+          scopes:
+            "epic/opportunities:read": Read access to opportunities
+            "epic/opportunities:all": "Create, Read, Update and Delete access to opportunities"
+  examples:
+    getResponseForOpportunitiesWithEmbed:
+      value:
+        total: 10
+        _links:
+          self:
+            href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities?offset=2&limit=2"
+          prev:
+            href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities?offset=1&limit=2"
+          next:
+            href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities?offset=3&limit=2"
+          first:
+            href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities?limit=2"
+          last:
+            href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities?offset=4&limit=2"
+        _embedded:
+          opportunities:
+            - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              description: Property Package
+              client: 7dfdf2bf-8a54-419c-b551-8c11def6dcaa
+              targetedCloseBy: "2023-05-15"
+              _links:
+                self:
+                  href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities/497f6eca-6276-4993-bfeb-53cbbbba6f08"
+                client:
+                  href: "https://api.mock.myappliedproducts.com/crm/v1/clients/7dfdf2bf-8a54-419c-b551-8c11def6dcaa"
+              _embedded:
+                client:
+                  id: 7dfdf2bf-8a54-419c-b551-8c11def6dcaa
+                  lookupCode: 1051PAR-01
+                  name: 10510 Parkside Condominium Association
+                  _links:
+                    self:
+                      href: "https://api.mock.myappliedproducts.com/crm/v1/clients/7dfdf2bf-8a54-419c-b551-8c11def6dcaa"
+            - id: 03de6e6d-7d02-4ef4-aea4-dcfc4f9709da
+              description: New business - Connies Team
+              client: bf9300eb-d9a4-4fd0-8b95-015edccf9bda
+              targetedCloseBy: "2022-09-27"
+              _links:
+                self:
+                  href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities/03de6e6d-7d02-4ef4-aea4-dcfc4f9709da"
+                client:
+                  href: "https://api.mock.myappliedproducts.com/crm/v1/clients/bf9300eb-d9a4-4fd0-8b95-015edccf9bda"
+              _embedded:
+                client:
+                  id: bf9300eb-d9a4-4fd0-8b95-015edccf9bda
+                  lookupCode: 1051PAR-02
+                  name: Automation 0000ClaimsTest
+                  _links:
+                    self:
+                      href: "https://api.mock.myappliedproducts.com/crm/v1/clients/bf9300eb-d9a4-4fd0-8b95-015edccf9bda"
+    getResponseForOpportunities:
+      value:
+        total: 10
+        _links:
+          self:
+            href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities?offset=2&limit=2"
+          prev:
+            href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities?offset=1&limit=2"
+          next:
+            href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities?offset=3&limit=2"
+          first:
+            href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities?limit=2"
+          last:
+            href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities?offset=4&limit=2"
+        _embedded:
+          opportunities:
+            - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              description: Property Package
+              client: 7dfdf2bf-8a54-419c-b551-8c11def6dcaa
+              targetedCloseBy: "2023-05-15"
+              _links:
+                self:
+                  href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities/497f6eca-6276-4993-bfeb-53cbbbba6f08"
+                client:
+                  href: "https://api.mock.myappliedproducts.com/crm/v1/clients/7dfdf2bf-8a54-419c-b551-8c11def6dcaa"
+            - id: 03de6e6d-7d02-4ef4-aea4-dcfc4f9709da
+              description: New business - Connies Team
+              client: bf9300eb-d9a4-4fd0-8b95-015edccf9bda
+              targetedCloseBy: "2022-09-27"
+              _links:
+                self:
+                  href: "https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities/03de6e6d-7d02-4ef4-aea4-dcfc4f9709da"
+                client:
+                  href: "https://api.mock.myappliedproducts.com/crm/v1/clients/bf9300eb-d9a4-4fd0-8b95-015edccf9bda"
+    getResponseForOpportunityById:
+      value:
+        id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+        description: Property Package
+        client: 7dfdf2bf-8a54-419c-b551-8c11def6dcaa
+        targetedCloseBy: '2023-05-15'
+        _links:
+          self:
+            href: 'https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities/497f6eca-6276-4993-bfeb-53cbbbba6f08'
+          client:
+            href: 'https://api.mock.myappliedproducts.com/epic/client/v1/clients/7dfdf2bf-8a54-419c-b551-8c11def6dcaa'
+    getResponseForOpportunityByIdWithEmbed:
+      value:
+        id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+        description: Property Package
+        client: 7dfdf2bf-8a54-419c-b551-8c11def6dcaa
+        targetedCloseBy: '2023-05-15'
+        _links:
+          self:
+            href: 'https://api.mock.myappliedproducts.com/epic/opportunity/v1/opportunities/497f6eca-6276-4993-bfeb-53cbbbba6f08'
+          client:
+            href: 'https://api.mock.myappliedproducts.com/epic/client/v1/clients/7dfdf2bf-8a54-419c-b551-8c11def6dcaa'
+        _embedded:
+          client:
+            id: 7dfdf2bf-8a54-419c-b551-8c11def6dcaa
+            lookupCode: 1051PAR-01
+            name: 10510 Parkside Condominium Association
+            _links:
+              self:
+                href: 'https://api.mock.myappliedproducts.com/epic/client/v1/clients/7dfdf2bf-8a54-419c-b551-8c11def6dcaa'
+security:
+  - oAuth: []

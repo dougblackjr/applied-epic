@@ -1,0 +1,10 @@
+{
+  "id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+  "type": "CLIENT",
+  "name": "John Doe",
+  "lookupCode": "JDOE-01",
+  "active": true,
+  "_links": {
+    "self": { "href": "https://api.mock.myappliedproducts.com/epic/account/v1/accounts/497f6eca-6276-4993-bfeb-53cbbbba6f08" }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "total": 3,
+  "_links": {
+    "self": { "href": "https://api.mock.myappliedproducts.com/epic/policy/v2/policies?offset=0&limit=2" },
+    "next": { "href": "https://api.mock.myappliedproducts.com/epic/policy/v2/policies?offset=2&limit=2" },
+    "first": { "href": "https://api.mock.myappliedproducts.com/epic/policy/v2/policies?limit=2" },
+    "last": { "href": "https://api.mock.myappliedproducts.com/epic/policy/v2/policies?offset=2&limit=2" }
+  },
+  "_embedded": {
+    "policies": [
+      {
+        "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "status": "CONTRACTED",
+        "description": "Acme Corp - General Liability",
+        "policyNumber": "GL-100245",
+        "effectiveOn": "2025-01-01",
+        "expirationOn": "2026-01-01",
+        "policyType": "b2c3d4e5-6f7a-4b5c-9d0e-1f2a3b4c5d6e",
+        "client": "f6a7b8c9-0d1e-4f5a-3b4c-5d6e7f8a9b0c",
+        "_links": {
+          "self": { "href": "https://api.mock.myappliedproducts.com/epic/policy/v2/policies/a1b2c3d4-e5f6-7890-abcd-ef1234567890" }
+        }
+      },
+      {
+        "id": "b2c3d4e5-f6a7-8901-bcde-f01234567891",
+        "status": "CONTRACTED",
+        "description": "Acme Corp - Commercial Property",
+        "policyNumber": "PR-100246",
+        "effectiveOn": "2025-03-15",
+        "expirationOn": "2026-03-15",
+        "policyType": "c3d4e5f6-7a8b-4c5d-0e1f-2a3b4c5d6e7f",
+        "client": "f6a7b8c9-0d1e-4f5a-3b4c-5d6e7f8a9b0c",
+        "_links": {
+          "self": { "href": "https://api.mock.myappliedproducts.com/epic/policy/v2/policies/b2c3d4e5-f6a7-8901-bcde-f01234567891" }
+        }
+      }
+    ]
+  }
+}

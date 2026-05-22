@@ -1,22 +1,23 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Tns\Epic\Resources;
 
-use Tns\Epic\Http\BaseClient;
-
-final class Policies
+/**
+ * Policies API — core policy and plan information for P&C and Benefits.
+ *
+ * Service: `/epic/policy/v2` — see spec/applied-epic-policy-v2-3.yaml
+ */
+final class Policies extends Resource
 {
-    public function __construct(private BaseClient $client) {}
-
-    /** POST /api/policy_search */
-    public function search(array $filter): array
+    protected function service(): string
     {
-        [$status, $headers, $body] = $this->client->request('POST', '/api/policy_search', json: $filter);
-        return $this->decode($body);
+        return '/epic/policy/v2';
     }
 
-    private function decode(string $body): array
+    protected function collection(): string
     {
-        $data = json_decode($body, true);
-        return is_array($data) ? $data : [];
+        return 'policies';
     }
 }

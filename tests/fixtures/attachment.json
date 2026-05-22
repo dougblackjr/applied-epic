@@ -1,0 +1,20 @@
+{
+  "id": "9fd6f78c-eb5f-44a1-a9df-dc6179d474bd",
+  "description": "Claim #1234",
+  "active": true,
+  "summary": "Mr. John Doe",
+  "folder": "ca579eb8-24ac-44d0-a8b9-a42c500083f5",
+  "account": "f5b54a51-a98c-44cf-bb68-a676332e7d12",
+  "attachedOn": "2019-08-24T14:15:22Z",
+  "file": {
+    "id": "9bc06b0e-2be6-448b-b203-617b0ef21089",
+    "name": "AccidentReport",
+    "extension": ".pdf",
+    "size": 85947,
+    "url": "https://documentservice.appliedsystems.com/documents/v1/accident-report.pdf",
+    "status": "OK"
+  },
+  "_links": {
+    "self": { "href": "https://api.mock.myappliedproducts.com/epic/attachment/v2/attachments/9fd6f78c-eb5f-44a1-a9df-dc6179d474bd" }
+  }
+}

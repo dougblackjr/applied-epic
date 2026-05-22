@@ -1,0 +1,1158 @@
+openapi: 3.0.3
+info:
+  title: Accounts
+  version: '1.0.2'
+  description: Access to top level accounts. These APIs are to be used in support of other resources, such as Attachments
+servers:
+  - url: 'https://api.mock.myappliedproducts.com/epic/account/v1'
+tags:
+  - name: Accounts
+    description: Operations related to accounts
+  - name: Relationships
+    description: Operations related to account relationships
+  - name: Agency Defined Categories
+    description: Operations related to agency defined categories for accounts
+paths:
+  /accounts:
+    get:
+      summary: Get Accounts
+      description: Get a list of accounts
+      tags:
+        - Accounts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          accounts:
+                            x-stoplight:
+                              id: j2dyevjd94yo7
+                            type: array
+                            items:
+                              x-stoplight:
+                                id: rlauimc09nthj
+                              allOf:
+                                - $ref: '#/components/schemas/Account'
+                                - $ref: '#/components/schemas/HALobject'
+              examples:
+                getResponse:
+                  value:
+                    total: 10
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts?offset=2&limit=2'
+                      prev:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts?offset=1&limit=2'
+                      next:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts?offset=3&limit=2'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts?limit=2'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts?offset=4&limit=2'
+                    _embedded:
+                      accounts:
+                        - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                          type: CLIENT
+                          name: John Doe
+                          lookupCode: JDOE-01
+                          active: true
+                          _links:
+                            self:
+                              href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/497f6eca-6276-4993-bfeb-53cbbbba6f08'
+                        - id: 03de6e6d-7d02-4ef4-aea4-dcfc4f9709da
+                          type: EMPLOYEE
+                          name: Jane Doe
+                          lookupCode: JADOE-01
+                          active: true
+                          _links:
+                            self:
+                              href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/03de6e6d-7d02-4ef4-aea4-dcfc4f9709da'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '412':
+          $ref: '#/components/responses/FailedPrecondition'
+      operationId: get-accounts
+      parameters:
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Limit'
+        - schema:
+            type: string
+          in: query
+          name: name
+          description: Finds accounts by their account name.
+        - schema:
+            type: string
+          in: query
+          name: name_contains
+          description: Finds accounts that contains this value in their account name.
+        - schema:
+            type: string
+          in: query
+          name: lookupCode
+          description: Finds accounts by lookup code.
+        - schema:
+            type: string
+          in: query
+          name: lookupCode_contains
+          description: Finds accounts whose lookup code contains this value.
+        - schema:
+            type: string
+            enum:
+              - BROKER
+              - CLIENT
+              - COMPANY
+              - EMPLOYEE
+              - FINANCE_COMPANY
+              - OTHER_INTEREST
+              - VENDOR
+          in: query
+          name: type
+          description: Finds account by type.
+        - $ref: '#/components/parameters/CultureCode'
+        - schema:
+            type: string
+            default: active
+            example: 'active,inactive'
+          in: query
+          name: active_status
+          description: Filters attachments by active (true) or inactive (false) status
+        - schema:
+            type: string
+          in: query
+          name: search
+          description: Finds accounts that contain this value in either the lookup code or account name.
+      security:
+        - oAuth:
+            - 'epic/accounts:read'
+            - 'epic/accounts:all'
+  '/accounts/{accountId}':
+    parameters:
+      - schema:
+          type: string
+        name: accountId
+        description: The unique identifier (GUID) for the account
+        in: path
+        required: true
+    get:
+      summary: Get Account by ID
+      description: Get details of an account by its unique identifier
+      tags:
+        - Accounts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Account'
+                  - $ref: '#/components/schemas/HALobject'
+              examples:
+                getSpecificResponse:
+                  $ref: '#/components/examples/getResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/FailedPrecondition'
+      operationId: get-accounts-accountId
+      parameters:
+        - $ref: '#/components/parameters/CultureCode'
+      security:
+        - oAuth:
+            - 'epic/accounts:read'
+            - 'epic/accounts:all'
+  /accounts/search:
+    get:
+      summary: Search Accounts
+      tags:
+        - Accounts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          accounts:
+                            x-stoplight:
+                              id: j2dyevjd94yo7
+                            type: array
+                            description: List of accounts the search found
+                            items:
+                              x-stoplight:
+                                id: rlauimc09nthj
+                              allOf:
+                                - allOf:
+                                    - $ref: '#/components/schemas/Account'
+                                    - type: object
+                                      x-stoplight:
+                                        id: n0u8xjygrjzfl
+                                      properties:
+                                        matchedResults:
+                                          type: array
+                                          x-stoplight:
+                                            id: 18qn0hoplu5ux
+                                          description: List of results that triggered the match
+                                          items:
+                                            x-stoplight:
+                                              id: rwxadb6e9f1b2
+                                            allOf:
+                                              - type: object
+                                                properties:
+                                                  id:
+                                                    type: string
+                                                    x-stoplight:
+                                                      id: brk3qt37yvo73
+                                                    format: uuid
+                                                    description: Unique identifier of the resource that matched
+                                                    readOnly: true
+                                                  type:
+                                                    x-stoplight:
+                                                      id: xkzk1ovteh5tr
+                                                    enum:
+                                                      - BROKER
+                                                      - CLIENT
+                                                      - COMPANY
+                                                      - EMPLOYEE
+                                                      - FINANCE_COMPANY
+                                                      - OTHER_INTEREST
+                                                      - VENDOR
+                                                      - CONTACT
+                                                    description: Type of resource that was matched
+                                                    readOnly: true
+                                                  phoneNumbers:
+                                                    type: array
+                                                    x-stoplight:
+                                                      id: 2tbkm69etz05a
+                                                    description: Details of the phone numbers that matched the search criteria. Optionally incuded with expand query parameter.
+                                                    items:
+                                                      type: object
+                                                      properties:
+                                                        number:
+                                                          description: The primary part of the phone number in the standard E.164 format
+                                                          type: string
+                                                          maxLength: 16
+                                                          format: e164
+                                                        extension:
+                                                          type: string
+                                                          description: A secondary part of the phone number used in organizations to route calls to specific internal lines or departments
+                                                          maxLength: 6
+                                                          pattern: '[\d\,]*'
+                                                        type:
+                                                          type: string
+                                                          description: Indicates the type of phone number
+                                                          enum:
+                                                            - BUSINESS
+                                                            - MOBILE
+                                                            - RESIDENCE
+                                                            - FAX
+                                                            - OTHER
+                                                            - ACCOUNT
+                                                        description:
+                                                          type: string
+                                                          description: The description of the phone number
+                                                          maxLength: 70
+                                                        callPermission:
+                                                          type: string
+                                                          description: Indicates if permission to call the phone number has been obtained
+                                                          enum:
+                                                            - OBTAINED
+                                                            - DID_NOT_OBTAIN
+                                                            - PLEASE_DO_NOT_CALL
+                                                  emails:
+                                                    type: array
+                                                    x-stoplight:
+                                                      id: tpw5saimusvv1
+                                                    description: Details of the email addresses that matched the search criteria. Optionally incuded with expand query parameter.
+                                                    items:
+                                                      type: object
+                                                      properties:
+                                                        emailAddress:
+                                                          type: string
+                                                          format: email
+                                                          description: The email address
+                                                          maxLength: 60
+                                              - $ref: '#/components/schemas/HALobject'
+                                    - $ref: '#/components/schemas/HALobject'
+              examples:
+                searchResponse:
+                  value:
+                    total: 10
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/search?offset=2&limit=2&email=user@domain.com&phoneNumber=+15555555555'
+                      prev:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/search?offset=1&limit=2&email=user@domain.com&phoneNumber=+15555555555'
+                      next:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/search?offset=3&limit=2&email=user@domain.com&phoneNumber=+15555555555'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/search?limit=2&email=user@domain.com&phoneNumber=+15555555555'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/search?offset=4&limit=2&email=user@domain.com&phoneNumber=+15555555555'
+                    _embedded:
+                      accounts:
+                        - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                          type: CLIENT
+                          name: John Doe
+                          lookupCode: JDOE-01
+                          active: true
+                          matchedResults:
+                            - id: 304ee42b-36ee-4060-acea-8e4251785708
+                              type: CONTACT
+                              _links:
+                                self:
+                                  href: 'https://api.mock.myappliedproducts.com/epic/contact/v1/contacts/304ee42b-36ee-4060-acea-8e4251785708'
+                          _links:
+                            self:
+                              href: 'https://api.mock.myappliedproducts.com/epic/client/v1/clients/497f6eca-6276-4993-bfeb-53cbbbba6f08'
+                        - id: 03de6e6d-7d02-4ef4-aea4-dcfc4f9709da
+                          type: CLIENT
+                          name: Jane Doe
+                          lookupCode: JADOE-01
+                          active: true
+                          matchedResults:
+                            - id: d723febc-61f0-4600-8f53-922799a058fd
+                              type: CONTACT
+                              _links:
+                                self:
+                                  href: 'https://api.mock.myappliedproducts.com/epic/contact/v1/contacts/d723febc-61f0-4600-8f53-922799a058fd'
+                            - id: 03de6e6d-7d02-4ef4-aea4-dcfc4f9709da
+                              type: CLIENT
+                              _links:
+                                self:
+                                  href: 'https://api.mock.myappliedproducts.com/epic/client/v1/clients/03de6e6d-7d02-4ef4-aea4-dcfc4f9709da'
+                          _links:
+                            self:
+                              href: 'https://api.mock.myappliedproducts.com/epic/client/v1/clients/03de6e6d-7d02-4ef4-aea4-dcfc4f9709da'
+                searchResponseWithExpand:
+                  value:
+                    total: 10
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/search?offset=2&limit=2&email_contains=domain.com&phoneNumber=+15555555555'
+                      prev:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/search?offset=1&limit=2&email_contains=domain.com&phoneNumber=+15555555555'
+                      next:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/search?offset=3&limit=2&email_contains=domain.com&phoneNumber=+15555555555'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/search?limit=2&email_contains=domain.com&phoneNumber=+15555555555'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/search?offset=4&limit=2&email_contains=domain.com&phoneNumber=+15555555555'
+                    _embedded:
+                      accounts:
+                        - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                          type: CLIENT
+                          name: John Doe
+                          lookupCode: JDOE-01
+                          active: true
+                          matchedResults:
+                            - id: 304ee42b-36ee-4060-acea-8e4251785708
+                              type: CONTACT
+                              phoneNumbers:
+                                - number: '+15555555555'
+                                  extension: '123'
+                                  type: BUSINESS
+                                  description: Work phone
+                                  callPermission: OBTAINED
+                              emails:
+                                - emailAddress: personal@domain.com
+                                - emailAddress: work@domain.com
+                              _links:
+                                self:
+                                  href: 'https://api.mock.myappliedproducts.com/epic/contact/v1/contacts/304ee42b-36ee-4060-acea-8e4251785708'
+                          _links:
+                            self:
+                              href: 'https://api.mock.myappliedproducts.com/epic/client/v1/clients/497f6eca-6276-4993-bfeb-53cbbbba6f08'
+                        - id: 03de6e6d-7d02-4ef4-aea4-dcfc4f9709da
+                          type: CLIENT
+                          name: Jane Doe
+                          lookupCode: JADOE-01
+                          active: true
+                          matchedResults:
+                            - id: d723febc-61f0-4600-8f53-922799a058fd
+                              type: CONTACT
+                              emails:
+                                - emailAddress: user@domain.com
+                              _links:
+                                self:
+                                  href: 'https://api.mock.myappliedproducts.com/epic/contact/v1/contacts/d723febc-61f0-4600-8f53-922799a058fd'
+                            - id: 03de6e6d-7d02-4ef4-aea4-dcfc4f9709da
+                              type: CLIENT
+                              phoneNumbers:
+                                - number: '+15555555555'
+                                  extension: ''
+                                  type: MOBILE
+                                  description: Personal cell phone
+                                  callPermission: OBTAINED
+                                - number: '+15555555556'
+                                  extension: '123'
+                                  type: BUSINESS
+                                  description: Work phone
+                                  callPermission: OBTAINED
+                              _links:
+                                self:
+                                  href: 'https://api.mock.myappliedproducts.com/epic/client/v1/clients/03de6e6d-7d02-4ef4-aea4-dcfc4f9709da'
+                          _links:
+                            self:
+                              href: 'https://api.mock.myappliedproducts.com/epic/client/v1/clients/03de6e6d-7d02-4ef4-aea4-dcfc4f9709da'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '412':
+          $ref: '#/components/responses/FailedPrecondition'
+      operationId: search-accounts
+      parameters:
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Limit'
+        - schema:
+            type: string
+            format: e164
+            example: '+15551234567'
+            maxLength: 16
+          in: query
+          name: phoneNumber
+          description: Finds accounts where the phone number belongs to the account or contact
+        - schema:
+            type: string
+            example: '+15551234567'
+            maxLength: 16
+          in: query
+          name: phoneNumber_contains
+          description: Finds accounts where that contain the phone number in the account or contact
+        - schema:
+            type: string
+            enum:
+              - BROKER
+              - CLIENT
+              - COMPANY
+              - EMPLOYEE
+              - FINANCE_COMPANY
+              - OTHER_INTEREST
+              - VENDOR
+          in: query
+          name: type
+          description: Finds account by type.
+        - $ref: '#/components/parameters/CultureCode'
+        - schema:
+            type: string
+            format: email
+          in: query
+          name: email
+          description: Finds accounts where the email belongs to the account or contact
+        - schema:
+            type: string
+          in: query
+          name: email_contains
+          description: Finds accounts where that contain the email in the account or contact
+        - schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - matchedResults
+          style: form
+          explode: false
+          in: query
+          name: expand
+          description: Additional fields to be added to the response
+      security:
+        - oAuth:
+            - 'epic/accounts:search'
+            - 'epic/accounts:all'
+      description: Used to search across accounts. One of phone number or email search must be provided to recieve any results.
+  '/accounts/{accountId}/relationships':
+    parameters:
+      - schema:
+          type: string
+          format: uuid
+        name: accountId
+        in: path
+        required: true
+        description: The unique identifier (GUID) for the account
+    get:
+      summary: Get Relationships by Account ID
+      description: Get Relationships by Account ID. This method requires version May 2026 of Epic or later to be utilized.
+      tags:
+        - Relationships
+      responses:
+        '200':
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          relationships:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: '#/components/schemas/AccountRelationship'
+                                - type: object
+                                  properties:
+                                    _embedded:
+                                      type: object
+                                      properties:
+                                        relatedAccount:
+                                          $ref: '#/components/schemas/Account'
+                                        type:
+                                          $ref: '#/components/schemas/Relationship'
+              examples:
+                getRelationshipsResponse:
+                  value:
+                    total: 2
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/497f6eca-6276-4993-bfeb-53cbbbba6f08/relationships?offset=0&limit=100'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/497f6eca-6276-4993-bfeb-53cbbbba6f08/relationships?limit=100'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/497f6eca-6276-4993-bfeb-53cbbbba6f08/relationships?offset=0&limit=100'
+                    _embedded:
+                      relationships:
+                        - id: 13f84f7e-6ad4-4ef0-86bd-8cee00cb8576
+                          relatedAccount: 03de6e6d-7d02-4ef4-aea4-dcfc4f9709da
+                          type: a9b8c7d6-e5f4-3210-fedc-ba0987654321
+                          role: Child
+                          active: true
+                        - id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                          relatedAccount: d723febc-61f0-4600-8f53-922799a058fd
+                          type: b2c3d4e5-f6a7-8901-bcde-f12345678901
+                          role: Employee
+                          active: true
+                getRelationshipsWithEmbedResponse:
+                  value:
+                    total: 1
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/497f6eca-6276-4993-bfeb-53cbbbba6f08/relationships?offset=0&limit=100&embed=relatedAccount,type'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/497f6eca-6276-4993-bfeb-53cbbbba6f08/relationships?limit=100&embed=relatedAccount,type'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/497f6eca-6276-4993-bfeb-53cbbbba6f08/relationships?offset=0&limit=100&embed=relatedAccount,type'
+                    _embedded:
+                      relationships:
+                        - id: 13f84f7e-6ad4-4ef0-86bd-8cee00cb8576
+                          relatedAccount: 03de6e6d-7d02-4ef4-aea4-dcfc4f9709da
+                          type: a9b8c7d6-e5f4-3210-fedc-ba0987654321
+                          role: Child
+                          active: true
+                          _embedded:
+                            relatedAccount:
+                              id: 03de6e6d-7d02-4ef4-aea4-dcfc4f9709da
+                              lookupCode: JADOE-01
+                              type: CLIENT
+                              name: Jane Doe
+                              active: true
+                            type:
+                              id: a9b8c7d6-e5f4-3210-fedc-ba0987654321
+                              type: Parent/Child
+                              primaryRole: Parent
+                              secondaryRole: Child
+                              active: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '426':
+          $ref: '#/components/responses/UpgradeRequired'
+      operationId: get-relationships-by-accountid
+      parameters:
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/CultureCode'
+        - schema:
+            type: string
+            format: uuid
+          in: query
+          name: relatedAccount
+          description: Filters relationships by the related account's unique identifier (GUID).
+        - schema:
+            type: string
+            format: uuid
+          in: query
+          name: type
+          description: Filters relationships by the relationship type's unique identifier (GUID).
+        - schema:
+            type: string
+          in: query
+          name: role
+          description: Filters relationships by the role name.
+        - schema:
+            type: string
+          in: query
+          name: role_contains
+          description: Filters relationships where the role contains this value.
+        - schema:
+            type: string
+            default: active
+            example: 'active,inactive'
+          in: query
+          name: active_status
+          description: Filters account relationships by active (true) or inactive (false) status
+        - schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - relatedAccount
+                - type
+          style: form
+          explode: false
+          in: query
+          name: embed
+          description: Embed additional resources in the response.
+      security:
+        - oAuth:
+            - 'epic/account-relationships:read'
+            - 'epic/account-relationships:all'
+  '/relationships/{relationshipId}':
+    parameters:
+      - schema:
+          type: string
+        name: relationshipId
+        in: path
+        required: true
+        description: The unique identifier (GUID) for the relationship
+    get:
+      summary: Get Relationship by ID
+      description: Get relationship by ID. This method requires version Fall 2022 of Epic or later to be utilized.
+      tags:
+        - Relationships
+      responses:
+        '200':
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Relationship'
+                  - $ref: '#/components/schemas/HALobject'
+              examples:
+                getSpecificResponse:
+                  $ref: '#/components/examples/getResponseForRelationship'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '426':
+          $ref: '#/components/responses/UpgradeRequired'
+      operationId: get-relationship-byId
+      parameters:
+        - $ref: '#/components/parameters/CultureCode'
+      security:
+        - oAuth:
+            - 'epic/relationships:read'
+            - 'epic/relationships:all'
+  '/accounts/{accountId}/agency-defined-categories':
+    parameters:
+      - schema:
+          type: string
+          format: uuid
+        name: accountId
+        in: path
+        required: true
+        description: 'Unique Id of the Account. Note: At this time only CLIENT account types (Client.ClientId) are supported. All other account types will return a 404 error.'
+    get:
+      summary: Get Agency Defined Categories for Account
+      description: 'Get list of agency defined categories for an account. This method requires version May 2026 of Epic or later to be utilized. **Important:** At this time only CLIENT account types are supported. Passing an accountId for any other account type (BROKER, COMPANY, EMPLOYEE, etc.) will return a 404 error.'
+      operationId: get-accounts-accountId-agency-defined-categories
+      tags:
+        - Agency Defined Categories
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/CultureCode'
+        - schema:
+            type: string
+          in: query
+          name: option
+          description: Finds agency defined categories with matching option code
+        - schema:
+            type: string
+          in: query
+          name: option_contains
+          description: Finds agency defined categories with option code that contains the text
+        - schema:
+            type: string
+          in: query
+          name: category
+          description: Finds agency defined categories with matching category code
+        - schema:
+            type: string
+          in: query
+          name: category_contains
+          description: Finds agency defined categories with category code that contains the text
+      responses:
+        '200':
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          agencyDefinedCategories:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: '#/components/schemas/AgencyDefinedCategory'
+                                - $ref: '#/components/schemas/HALobject'
+              examples:
+                getResponseForAccountAgencyDefinedCategories:
+                  $ref: '#/components/examples/getResponseForAccountAgencyDefinedCategories'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '426':
+          $ref: '#/components/responses/UpgradeRequired'
+      security:
+        - oAuth:
+            - 'epic/account-agency-defined-categories:read'
+            - 'epic/account-agency-defined-categories:all'
+components:
+  schemas:
+    Account:
+      title: Account
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier (GUID) that represents the account
+          readOnly: true
+        type:
+          enum:
+            - BROKER
+            - CLIENT
+            - COMPANY
+            - EMPLOYEE
+            - FINANCE_COMPANY
+            - OTHER_INTEREST
+            - VENDOR
+          description: The type of account
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+          description: Name of the account.
+        lookupCode:
+          type: string
+          description: Lookup code of the account.
+          maxLength: 10
+        active:
+          type: boolean
+          x-stoplight:
+            id: mx17ax3v6v2xc
+          description: Indicates whether the account is active or inactive
+    Relationship:
+      title: Relationship
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier (GUID) that represents the relationship
+          readOnly: true
+        type:
+          type: string
+          maxLength: 101
+          description: Name of the relationship type as configured in Epic
+          example: Parent/Child
+        primaryRole:
+          type: string
+          maxLength: 50
+          description: Name of the role assigned to the first party in the relationship
+          example: Parent
+        secondaryRole:
+          type: string
+          maxLength: 50
+          description: Name of the role assigned to the second party in the relationship
+          example: Child
+        active:
+          type: boolean
+          description: Indicates whether the relationship is active or inactive
+    AccountRelationship:
+      title: AccountRelationship
+      type: object
+      description: Represents a relationship from the perspective of a specific account
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier (GUID) that represents the relationship
+          readOnly: true
+        relatedAccount:
+          type: string
+          format: uuid
+          description: The unique identifier (GUID) of the related account
+          readOnly: true
+        type:
+          type: string
+          format: uuid
+          description: The unique identifier (GUID) of the relationship type
+          readOnly: true
+        role:
+          type: string
+          maxLength: 50
+          description: The role of the related account in this relationship
+          example: Child
+          readOnly: true
+        active:
+          type: boolean
+          description: Indicates whether the relationship is active or inactive
+          readOnly: true
+    HALobject:
+      title: HALobject
+      type: object
+      properties:
+        _links:
+          type: object
+          description: Related links
+          additionalProperties:
+            $ref: '#/components/schemas/HALlink'
+        _embedded:
+          type: object
+    Error:
+      title: Error
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        traceId:
+          type: string
+        additionalDetails:
+          type: array
+          items:
+            type: object
+      description: Common error response
+    HALlink:
+      title: HALlink
+      type: object
+      properties:
+        href:
+          type: string
+        templated:
+          type: boolean
+        type:
+          type: string
+        deprecation:
+          type: string
+        name:
+          type: string
+        profile:
+          type: string
+        title:
+          type: string
+        hreflang:
+          type: string
+    HALcollection:
+      title: HALcollection
+      type: object
+      properties:
+        total:
+          type: integer
+        _links:
+          type: object
+          properties:
+            self:
+              $ref: '#/components/schemas/HALlink'
+            prev:
+              $ref: '#/components/schemas/HALlink'
+            next:
+              $ref: '#/components/schemas/HALlink'
+            first:
+              $ref: '#/components/schemas/HALlink'
+            last:
+              $ref: '#/components/schemas/HALlink'
+        _embedded:
+          type: object
+    UserAndDate:
+      title: UserAndDate
+      type: object
+      readOnly: true
+      properties:
+        userCode:
+          type: string
+          description: The user code that performed the action
+        date:
+          type: string
+          format: date-time
+          description: When the action was performed
+    ProcessAndDate:
+      title: ProcessAndDate
+      type: object
+      readOnly: true
+      properties:
+        code:
+          type: string
+          description: The process code that performed the action
+        date:
+          type: string
+          format: date-time
+          description: When the action was performed
+    AgencyDefinedCategory:
+      title: AgencyDefinedCategory
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier (GUID) that represents the agency defined category.
+        category:
+          type: string
+          description: A classification label defined by the agency to group related entities for reporting or workflow purposes.
+        option:
+          type: string
+          description: A value within a category that further specifies the classification.
+        enteredBy:
+          $ref: '#/components/schemas/UserAndDate'
+        enteredByProcess:
+          $ref: '#/components/schemas/ProcessAndDate'
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            badRequestExample:
+              value:
+                type: 'https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1'
+                title: Bad Request
+                status: 400
+                detail: One or more arguments are invalid
+                instance: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts'
+                traceId: '1234567890123456789'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            unauthorizedExample:
+              value:
+                type: 'https://datatracker.ietf.org/doc/html/rfc7235#section-3.1'
+                title: Unauthorized
+                status: 401
+                detail: You are not authorized to access this resource
+                instance: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts'
+                traceId: '1234567890123456789'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            forbiddenExample:
+              value:
+                type: 'https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.3'
+                title: Forbidden
+                status: 403
+                detail: You are forbidden to access this resource
+                instance: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts'
+                traceId: '1234567890123456789'
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            notFoundExample:
+              value:
+                type: 'https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4'
+                title: Not Found
+                status: 404
+                detail: The specified resource was not found
+                instance: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts'
+                traceId: '1234567890123456789'
+    FailedPrecondition:
+      description: Failed Precondition
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            failedPreconditionExample:
+              value:
+                type: 'https://datatracker.ietf.org/doc/html/rfc7232#section-4.2'
+                title: Failed Precondition
+                status: 412
+                detail: One or more arguments are invalid
+                instance: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts'
+                traceId: '1234567890123456789'
+    UpgradeRequired:
+      description: Upgrade Required
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            upgradeRequiredExample:
+              value:
+                type: 'https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.15'
+                title: Upgrade Required
+                status: 426
+                detail: This API requires version May 2026 of Epic or later to be utilized.
+                instance: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts'
+  parameters:
+    CultureCode:
+      name: Accept-Language
+      in: header
+      description: Designates the target culture to return descriptions in. (ie. en-US)
+      schema:
+        type: string
+        example: en-US
+    Offset:
+      name: offset
+      in: query
+      description: Record number to start pulling from
+      schema:
+        type: integer
+        minimum: 0
+    Limit:
+      name: limit
+      in: query
+      description: Number of records to pull.
+      schema:
+        type: integer
+        default: 100
+        minimum: 1
+        maximum: 500
+  securitySchemes:
+    oAuth:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: 'https://api.mock.myappliedproducts.com/v1/auth/connect/token'
+          scopes:
+            'epic/relationships:read': 'Read access to relationship types'
+            'epic/relationships:all': 'Create, Read, Update and Delete access to relationship types'
+            'epic/accounts:search': 'Search access to accounts'
+            'epic/accounts:read': 'Read access to accounts'
+            'epic/accounts:all': 'Create, Read, Search, Update and Delete access to accounts'
+            'epic/account-agency-defined-categories:read': 'Read access to account agency defined categories'
+            'epic/account-agency-defined-categories:all': 'Create, Read, Update and Delete access to account agency defined categories'
+            'epic/account-relationships:read': 'Read access to account relationships'
+            'epic/account-relationships:all': 'Create, Read, Update and Delete access to account relationships'
+  examples:
+    getResponse:
+      value:
+        id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+        type: CLIENT
+        name: John Doe
+        lookupCode: JDOE-01
+        active: true
+        _links:
+          self:
+            href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/497f6eca-6276-4993-bfeb-53cbbbba6f08'
+    getResponseForAccountAgencyDefinedCategories:
+      value:
+        total: 5
+        _links:
+          self:
+            href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/3bf3c3a9-98bf-4cdc-bfc7-e400ea8d7d4b/agency-defined-categories?offset=0&limit=2'
+          next:
+            href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/3bf3c3a9-98bf-4cdc-bfc7-e400ea8d7d4b/agency-defined-categories?offset=2&limit=2'
+          first:
+            href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/3bf3c3a9-98bf-4cdc-bfc7-e400ea8d7d4b/agency-defined-categories?limit=2'
+          last:
+            href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/3bf3c3a9-98bf-4cdc-bfc7-e400ea8d7d4b/agency-defined-categories?offset=3&limit=2'
+        _embedded:
+          agencyDefinedCategories:
+            - id: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+              category: Positive Touch Points
+              option: Relationship Anniversary Card
+              enteredBy:
+                userCode: JSMITH
+                date: '2023-01-15T10:30:00Z'
+              enteredByProcess:
+                code: EPIC
+                date: '2023-01-15T10:30:00Z'
+              _links:
+                self:
+                  href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/3bf3c3a9-98bf-4cdc-bfc7-e400ea8d7d4b/agency-defined-categories/1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d'
+            - id: 2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e
+              category: Carrier Lines
+              option: Contractors & Tradesmen
+              enteredBy:
+                userCode: JSMITH
+                date: '2023-02-20T14:45:00Z'
+              enteredByProcess:
+                code: SDK
+                date: '2023-02-20T14:45:00Z'
+              _links:
+                self:
+                  href: 'https://api.mock.myappliedproducts.com/epic/account/v1/accounts/3bf3c3a9-98bf-4cdc-bfc7-e400ea8d7d4b/agency-defined-categories/2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e'
+    getResponseForRelationship:
+      value:
+        id: 13f84f7e-6ad4-4ef0-86bd-8cee00cb8576
+        type: Parent/Child
+        primaryRole: Parent
+        secondaryRole: Child
+        active: true
+        _links:
+          self:
+            href: 'https://api.mock.myappliedproducts.com/epic/account/v1/relationships/13f84f7e-6ad4-4ef0-86bd-8cee00cb8576'

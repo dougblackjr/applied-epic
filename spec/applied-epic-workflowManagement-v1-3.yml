@@ -1,0 +1,1849 @@
+openapi: 3.0.3
+info:
+  title: Workflow Management Module
+  version: '1.0.5'
+  description: Manage activities for work tracking purposes
+servers:
+  - url: 'https://api.mock.myappliedproducts.com/workflow-management/v1'
+paths:
+  '/clients/{clientId}/activities':
+    get:
+      summary: Get Client Activities
+      operationId: get-clients-clientid-activities
+      description: Retrieve a collection of activities associated to a client. Includes non system and system activities.
+      tags:
+        - Activities
+      parameters:
+        - $ref: '#/components/parameters/ClientId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/ClientCorrelationId'
+        - $ref: '#/components/parameters/CultureCode'
+        - $ref: '#/components/parameters/Status'
+        - $ref: '#/components/parameters/EnteredByDate'
+        - $ref: '#/components/parameters/EnteredByDate_before'
+        - $ref: '#/components/parameters/EnteredByDate_after'
+        - $ref: '#/components/parameters/OwnerEmployeeId'
+        - $ref: '#/components/parameters/OwnerWorkGroupId'
+        - $ref: '#/components/parameters/AssociatedPolicyId'
+        - $ref: '#/components/parameters/IndioSubmissionId'
+      responses:
+        '200':
+          description: Activity Found
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          activities:
+                            type: array
+                            items:
+                              type: object
+                              allOf:
+                                - $ref: '#/components/schemas/ActivityList'
+                              properties:
+                                _links:
+                                  type: object
+                                  properties:
+                                    self:
+                                      $ref: '#/components/schemas/HALlink'
+              examples:
+                activityListResponseExample:
+                  value:
+                    total: 10
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/clients/00000000-0000-0000-0000-000000000000/activities?offset=10&limit=2'
+                      prev:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/clients/00000000-0000-0000-0000-000000000000/activities?offset=8&limit=2'
+                      next:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/clients/00000000-0000-0000-0000-000000000000/activities?offset=12&limit=2'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/clients/00000000-0000-0000-0000-000000000000/activities?limit=2'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/clients/00000000-0000-0000-0000-000000000000/activities?offset=18&limit=2'
+                    _embedded:
+                      activities:
+                        - id: 00000000-0000-0000-0000-000000000000
+                          code: CALL
+                          description: Call the insured
+                          associationType: POLICY
+                          owner:
+                            type: EMPLOYEE
+                            id: 00000000-0000-0000-0000-000000000000
+                            code: SMIMI1
+                            name: Mike Smith
+                          enteredBy:
+                            userCode: JDOE
+                            date: '2021-01-05'
+                          lastUpdatedBy:
+                            userCode: JDOE
+                            date: '2021-07-05'
+                          startFollowUpOn: '2021-03-15T13:00:00Z'
+                          endFollowUpOn: '2021-07-05'
+                          status: OPEN
+                          _links:
+                            self:
+                              href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/00000000-0000-0000-0000-000000000000'
+                        - id: 00000000-0000-0000-0000-000000000001
+                          code: ATCH
+                          description: File Attached
+                          associationType: LINE
+                          owner:
+                            type: EMPLOYEE
+                            id: 00000000-0000-0000-0000-000000000000
+                            code: SMIMI1
+                            name: Mike Smith
+                          enteredBy:
+                            userCode: JDOE
+                            date: '2021-03-15T13:00:00Z'
+                          lastUpdatedBy:
+                            userCode: JDOE
+                            date: '2022-01-25T13:48:00Z'
+                          startFollowUpOn: '2021-03-15T13:00:00Z'
+                          endFollowUpOn: '2021-07-05T13:00:00Z'
+                          status: OPEN
+                          _links:
+                            self:
+                              href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/00000000-0000-0000-0000-000000000001'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - oAuth:
+          - 'epic/activity:read'
+          - 'epic/activity:all'      
+  /activities:
+    post:
+      summary: Create a non system generated Activity
+      operationId: create-activity
+      description: Create a new non system generated activity
+      tags:
+        - Activities
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Activity'
+                - type: object
+                  properties:
+                    note:
+                      $ref: '#/components/schemas/ActivityNote'
+            examples:
+              ActivityRequestExample:
+                value:
+                  code:
+                    id: 00000000-0000-0000-0000-000000000000
+                  description: Call the insured RE increasing coverage
+                  association:
+                    type: CLIENT
+                    id: 00000000-0000-0000-0000-000000000000
+                    organization:
+                      agency:
+                        id: 00000000-0000-0000-0000-000000000000
+                      branch:
+                        id: 00000000-0000-0000-0000-000000000000
+                  owner:
+                    type: EMPLOYEE
+                    id: 00000000-0000-0000-0000-000000000000
+                  startFollowUpOn: '2021-03-15T13:00:00Z'
+                  endFollowUpOn: '2021-03-15T14:00:00Z'
+                  followUpReminderOn: '2021-07-05T15:00:00Z'
+                  issuingCompany:
+                    id: 00000000-0000-0000-0000-000000000000
+                  premiumPayable:
+                    type: BROKER_INTERNAL
+                    id: 00000000-0000-0000-0000-000000000000
+                  status: CLOSED
+                  closed:
+                    successful: false
+                    unsuccessfulReason: Never Contacted
+                  note:
+                    accessLevel:
+                      id: '2'
+                      description: Benfits
+                    content: Client is not a good candidate for increasing coverage
+      responses:
+        '201':
+          description: Created
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Activity'
+                  - $ref: '#/components/schemas/HALobject'
+                properties:
+                  _links:
+                    type: object
+                    properties:
+                      account:
+                        $ref: '#/components/schemas/HALlink'
+                      association:
+                        $ref: '#/components/schemas/HALlink'
+              examples:
+                ActivityResponseExample:
+                  value:
+                    id: 00000000-0000-0000-0000-000000000000
+                    account:
+                      id: 00000000-0000-0000-0000-000000000000
+                      type: CLIENT
+                      lookupCode: SMITALI-01
+                      name: Alice Smith
+                    association:
+                      type: POLICY
+                      id: 00000000-0000-0000-0000-000000000000
+                    code:
+                      id: 00000000-0000-0000-0000-000000000000
+                      code: CALL
+                    activityCode:
+                      id: '65536'
+                      code: CALL
+                    description: Call the insured RE increasing coverage
+                    owner:
+                      type: EMPLOYEE
+                      id: 00000000-0000-0000-0000-000000000000
+                      code: SMIMI1
+                      name: Mike Smith
+                    enteredBy:
+                      userCode: JDOE
+                      date: '2021-01-05'
+                    lastUpdatedBy:
+                      userCode: JDOE
+                      date: '2021-07-05'
+                    startFollowUpOn: '2021-03-15T13:00:00Z'
+                    endFollowUpOn: '2021-07-05'
+                    status: CLOSED
+                    closed:
+                      successful: false
+                      unsuccessfulReason: Never Contacted
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/activities/00000000-0000-0000-0000-000000000001'                      
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+        - oAuth:
+          - 'epic/activity:write' 
+          - 'epic/activity:all'
+  '/activities/{activityId}':
+    parameters:
+      - $ref: '#/components/parameters/ActivityId'
+    get:
+      summary: Get Activity by Activity ID
+      operationId: get-activities-activityId
+      description: Retrieve the information of an activity with the matching activity ID.
+      tags:
+        - Activities
+      parameters:
+        - $ref: '#/components/parameters/ClientCorrelationId'
+        - $ref: '#/components/parameters/CultureCode'
+      responses:
+        '200':
+          description: Activity Found
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Activity'
+                  - $ref: '#/components/schemas/HALobject'
+                properties:
+                  _links:
+                    type: object
+                    properties:
+                      account:
+                        $ref: '#/components/schemas/HALlink'
+                      association:
+                        $ref: '#/components/schemas/HALlink'
+              examples:
+                ActivityResponseExample:
+                  $ref: '#/paths/~1activities/post/responses/201/content/application~1hal%2Bjson/examples/ActivityResponseExample'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - oAuth:
+          - 'epic/activity:read'
+          - 'epic/activity:all'      
+  '/activities/{activityId}/notes':
+    parameters:
+      - schema:
+          type: string
+        name: activityId
+        in: path
+        required: true
+    get:
+      summary: Get notes for an activity by activity ID
+      tags:
+        - Activities
+      responses:
+        '200':
+          description: Note Found
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          notes:
+                            type: array
+                            items:
+                              type: object
+                              allOf:
+                                - $ref: '#/components/schemas/ActivityNote'
+                                - $ref: '#/components/schemas/HALobject'
+              examples:
+                List Notes Response:
+                  value:
+                    total: 10
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/00000000-0000-0000-0000-000000000000/notes?offset=10&limit=2'
+                      prev:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/00000000-0000-0000-0000-000000000000/notes?offset=8&limit=2'
+                      next:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/00000000-0000-0000-0000-000000000000/notes?offset=12&limit=2'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/00000000-0000-0000-0000-000000000000/notes?limit=2'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/00000000-0000-0000-0000-000000000000/notes?offset=18&limit=2'
+                    _embedded:
+                      notes:
+                        - id: '00000000-0000-0000-0000-000000000000'
+                          accessLevel:
+                            id: '6'
+                            description: General
+                          content: Client is not a good candidate for increasing coverage
+                          enteredBy:
+                            userCode: JDOE
+                            date: '2021-01-05T02:03:04Z'
+                          _links:
+                            self:
+                              href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/notes/00000000-0000-0000-0000-000000000000'
+                        - id: '00000000-0000-0000-0000-000000000001'
+                          content: Customer called looking for an update on upcoming renewal
+                          enteredBy:
+                            userCode: ACSR
+                            date: '2022-03-04T02:03:04Z'
+                          _links:
+                            self:
+                              href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/notes/00000000-0000-0000-0000-000000000001'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - oAuth:
+          - 'epic/activity:read'
+          - 'epic/activity:all'      
+      operationId: get-activities-activityId-notes
+      description: Retrieve a list of notes for an activity
+    post:
+      summary: POST a note on an activity
+      operationId: post-activities-activityId-notes
+      description: Create a new note on an activity
+      tags:
+        - Activities
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ActivityNote'
+            examples:
+              ActivityNoteRequestExample:
+                value:
+                  accessLevel:
+                    id: '2'
+                    description: Benfits
+                  content: Client is not a good candidate for increasing coverage
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityNote'
+              examples:
+                Created Note Response:
+                  value:
+                    id: 00000000-0000-0000-0000-000000000000
+                    accessLevel:
+                      id: '6'
+                      description: General
+                    content: Client is not a good candidate for increasing coverage
+                    enteredBy:
+                      userCode: JDOE
+                      date: '2021-01-05T02:03:04Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - oAuth:
+          - 'epic/activity:write' 
+          - 'epic/activity:all'
+  '/activities/notes/{noteId}':
+    parameters:
+      - schema:
+          type: string
+        name: noteId
+        in: path
+        required: true
+    get:
+      summary: Get activity note by activity note ID
+      tags:
+        - Activities
+      responses:
+        '200':
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ActivityNote'
+              examples:
+                Note Response Example:
+                  value:
+                    id: 00000000-0000-0000-0000-000000000000
+                    accessLevel:
+                      id: '6'
+                      description: General
+                    content: Client is not a good candidate for increasing coverage
+                    enteredBy:
+                      userCode: JDOE
+                      date: '2021-01-05T02:03:04Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'                      
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: get-activities-notes-noteId
+      description: Retrieve a single activity note
+  /activities/codes:
+    get:
+      summary: Get Activity Codes
+      operationId: get-activities-codes
+      description: Retrieve a list of activity codes that can be used when adding an activity
+      tags:
+        - Activities
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/ClientCorrelationId'
+        - $ref: '#/components/parameters/CultureCode'
+        - $ref: '#/components/parameters/Code'
+        - $ref: '#/components/parameters/IncludeSystemEventActivityCodes'
+      responses:
+        '200':
+          description: Activity Codes Found
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          activityCodes:
+                            type: array
+                            items:
+                              type: object
+                              allOf:
+                                - $ref: '#/components/schemas/ActivityCodeLookup'
+                              properties:
+                                _links:
+                                  type: object
+                                  properties:
+                                    self:
+                                      $ref: '#/components/schemas/HALlink'
+              examples:
+                ActivityCodesResponseExample:
+                  value:
+                    total: 50
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/codes?offset=10&limit=2'
+                      prev:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/codes?offset=8&limit=2'
+                      next:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/codes?offset=12&limit=2'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/codes?limit=2'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/codes?offset=48&limit=2'
+                    _embedded:
+                      activityCodes:
+                        - id: '100'
+                          code: '@AOP'
+                          description: Add Opportunity
+                        - id: '65536'
+                          code: CALL
+                          description: Call the insured
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+        - oAuth:
+          - 'epic/activity:read'
+          - 'epic/activity:all'    
+  /activities/unsuccessful-reasons:
+    get:
+      summary: Get Unsuccessful reasons
+      operationId: get-activities-unsuccessful-reasons
+      description: Retrieve a list of reasons that the activity was closed unsuccessfully to be used when adding an activity
+      tags:
+        - Activities
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/ClientCorrelationId'
+        - $ref: '#/components/parameters/CultureCode'
+      responses:
+        '200':
+          description: Activity Unsuccessful Reasons Found
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          unsuccessfulReasons:
+                            type: array
+                            items:
+                              type: object
+                              allOf:
+                                - $ref: '#/components/schemas/UnsuccessfulReason'
+                              properties:
+                                _links:
+                                  type: object
+                                  properties:
+                                    self:
+                                      $ref: '#/components/schemas/HALlink'
+              examples:
+                ActivityUnsuccessfulReasonsResponseExample:
+                  value:
+                    total: 50
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/unsuccessful-reasons?offset=10&limit=2'
+                      prev:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/unsuccessful-reasons?offset=8&limit=2'
+                      next:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/unsuccessful-reasons?offset=12&limit=2'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/unsuccessful-reasons?limit=2'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/unsuccessful-reasons?offset=48&limit=2'
+                    _embedded:
+                      unsuccessfulReasons:
+                        - id: 00000000-0000-0000-0000-000000000000
+                          description: Claim Denied
+                        - id: 00000000-0000-0000-0000-000000000001
+                          description: Never Contacted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+        - oAuth:
+          - 'epic/activity:read'
+          - 'epic/activity:all'      
+  /activities/notes/access-levels:
+    get:
+      summary: Get Note Access Levels
+      operationId: get-activities-notes-access-levels
+      description: Retrieve a list of access levels for activity notes that the provided user is granted security permissions to view
+      tags:
+        - Activities
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/ClientCorrelationId'
+        - $ref: '#/components/parameters/CultureCode'
+      responses:
+        '200':
+          description: Access levels Found
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          accessLevels:
+                            type: array
+                            items:
+                              type: object
+                              allOf:
+                                - $ref: '#/components/schemas/ActivityNoteAccessLevel'
+                              properties:
+                                _links:
+                                  type: object
+                                  properties:
+                                    self:
+                                      $ref: '#/components/schemas/HALlink'
+              examples:
+                AccessLevelsResponseExample:
+                  value:
+                    total: 50
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/notes/access-levels?offset=10&limit=2'
+                      prev:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/notes/access-levels?offset=8&limit=2'
+                      next:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/notes/access-levels?offset=12&limit=2'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/notes/access-levels?limit=2'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/notes/access-levels?offset=48&limit=2'
+                    _embedded:
+                      accessLevels:
+                        - id: '1'
+                          description: HIPPA
+                        - id: '2'
+                          description: Benefits
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+        - oAuth:
+          - 'epic/activity:read'
+          - 'epic/activity:all'      
+  /activities/premium-payable-entities:
+    get:
+      summary: Get Premium Payable Entities
+      operationId: get-activities-premium-payable-entities
+      description: 'Retrieve a list of valid premium payable entities, to be used when adding an activity'
+      tags:
+        - Activities
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/ClientCorrelationId'
+        - $ref: '#/components/parameters/CultureCode'
+        - $ref: '#/components/parameters/PremiumPayableType'
+        - $ref: '#/components/parameters/AssociationType'
+        - $ref: '#/components/parameters/AssociatedId'
+        - $ref: '#/components/parameters/AgencyId'
+        - $ref: '#/components/parameters/BranchId'
+      responses:
+        '200':
+          description: Activity Premium Payable Entities Found
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          premiumPayableEntities:
+                            type: array
+                            items:
+                              type: object
+                              allOf:
+                                - $ref: '#/components/schemas/PremiumPayableEntity'
+                              properties:
+                                _links:
+                                  type: object
+                                  properties:
+                                    self:
+                                      $ref: '#/components/schemas/HALlink'
+              examples:
+                ActivityPremiumPayableEntitiesResponseExample:
+                  value:
+                    total: 50
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/premium-payable-entities?offset=10&limit=2'
+                      prev:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/premium-payable-entities?offset=8&limit=2'
+                      next:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/premium-payable-entities?offset=12&limit=2'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/premium-payable-entities?limit=2'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/premium-payable-entities?offset=48&limit=2'
+                    _embedded:
+                      premiumPayableEntities:
+                        - id: 00000000-0000-0000-0000-000000000000
+                          type: CARRIER
+                          lookupCode: FIRST1
+                          description: First Carrier
+                        - id: 00000000-0000-0000-0000-000000000001
+                          type: CARRIER
+                          lookupCode: SECON1
+                          description: Second Carrier
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+        - oAuth:
+          - 'epic/activity:read'
+          - 'epic/activity:all'      
+  /activities/issuing-companies:
+    get:
+      summary: Get Issuing Companies
+      operationId: get-activities-issuing-companies
+      description: Retrieve a list of issuing companies that can be used when adding an activity
+      tags:
+        - Activities
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/ClientCorrelationId'
+        - $ref: '#/components/parameters/CultureCode'
+        - $ref: '#/components/parameters/AssociationType'
+        - $ref: '#/components/parameters/AssociatedId'
+        - $ref: '#/components/parameters/AgencyId'
+        - $ref: '#/components/parameters/BranchId'
+      responses:
+        '200':
+          description: Activity Issuing Companies Found
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          issuingCompanies:
+                            type: array
+                            items:
+                              type: object
+                              allOf:
+                                - $ref: '#/components/schemas/IssuingCompany'
+                              properties:
+                                _links:
+                                  type: object
+                                  properties:
+                                    self:
+                                      $ref: '#/components/schemas/HALlink'
+              examples:
+                ActivityIssuingCompaniesResponseExample:
+                  value:
+                    total: 50
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/issuing-companies?offset=10&limit=2'
+                      prev:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/issuing-companies?offset=8&limit=2'
+                      next:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/issuing-companies?offset=12&limit=2'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/issuing-companies?limit=2'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/issuing-companies?offset=48&limit=2'
+                    _embedded:
+                      issuingCompanies:
+                        - id: '00000000-0000-0000-0000-000000000000'
+                          code: 'FIRST1'
+                          name: 'First Issuing Company'
+                        - id: '00000000-0000-0000-0000-000000000001'
+                          code: 'SECON2'
+                          name: 'Second Issuing Company'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+        - oAuth:
+          - 'epic/activity:read'
+          - 'epic/activity:all'   
+  '/activities/codes/{activityCodeId}/defaults':
+    parameters:
+      - $ref: '#/components/parameters/ActivityCodeId'
+    post:
+      summary: Get Activity Code Defaults
+      operationId: post-activities-codes-activityCodeId-default
+      description: Retrieve the default values for an activity code based on the activity code ID. Returns values that can be used directly when creating an activity. Macro variables in the description will be resolved based on the provided association context.
+      tags:
+        - Activities
+      parameters:
+        - $ref: '#/components/parameters/ClientCorrelationId'
+        - $ref: '#/components/parameters/CultureCode'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - association
+              properties:
+                association:
+                  type: object
+                  description: The item that the activity will be associated to. Required to resolve macro variables.
+                  required:
+                    - type
+                    - id
+                  properties:
+                    type:
+                      $ref: '#/components/schemas/ItemTypeEnum'
+                    id:
+                      type: string
+                      description: The unique identifier of the item that the activity is associated to. If an account is provided, this resource must belong to that account.
+                    organization:
+                      type: string
+                      description: The organization that will be associated to the activity. Use the agency and branch combination for the desired activity association.
+                account:
+                  type: string
+                  description: The account that the activity is associated to. The account provided here must align with the association.
+            examples:
+              ActivityCodeDefaultRequestExample:
+                value:
+                  association:
+                    type: ATTACHMENT
+                    id: f034e97f-991e-48ed-b632-9ca67a953bf5
+                    organization: ffd743ad-fabf-4f4a-8b9d-249ae5c43fa5
+                  account: df132a65-eead-402c-b05e-8f821aa95754
+      responses:
+        '200':
+          description: Activity Code Defaults Retrieved
+          content:
+            application/hal+json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: object
+                    description: The activity code
+                    properties:
+                      id:
+                        type: string
+                        description: The unique identifier of the activity code
+                  owner:
+                    type: object
+                    description: The default owner for the activity code
+                    properties:
+                      type:
+                        type: string
+                        description: The default type of activity owner
+                        enum:
+                          - EMPLOYEE
+                          - WORK_GROUP
+                      id:
+                        type: string
+                        description: The unique identifier of the owner. Conditionally required when the default owner is Specific person or Specific Work Group.
+                  description:
+                    type: string
+                    description: Description of the activity code with macro variables resolved based on the provided association context
+                  association:
+                    type: object
+                    description: The item that the activity is associated to
+                    properties:
+                      type:
+                        $ref: '#/components/schemas/ItemTypeEnum'
+                      id:
+                        type: string
+                        description: The unique identifier of the item that the activity is associated to
+                      organization:
+                        type: object
+                        description: The organization that will be associated to the activity
+                        properties:
+                          agency:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                description: Unique identifier of the agency belonging to the organization structure
+                          branch:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                description: Unique identifier of the branch belonging to the organization structure
+                  status:
+                    type: string
+                    description: The default activity status assigned to the activity code
+                    enum:
+                      - OPEN
+                      - CLOSED
+                  closed:
+                    type: object
+                    description: The default closed details when the activity is closed on creation
+                    properties:
+                      successful:
+                        type: boolean
+                        description: The default assigned status when the activity is closed
+                      unsuccessfulReason:
+                        type: string
+                        description: The default reason that will be associated with activity when closed unsuccessfully
+                  startFollowUpOn:
+                    type: string
+                    description: The follow up start date and time. Returns empty string as this needs to be set by the caller.
+                  endFollowUpOn:
+                    type: string
+                    description: The follow up end date and time. Returns empty string as this needs to be set by the caller.
+                  followUpReminderOn:
+                    type: string
+                    description: The follow up reminder date and time. Returns empty string as this needs to be set by the caller.
+                  issuingCompany:
+                    type: object
+                    nullable: true
+                    description: The issuing company for the activity. Returns null as this needs to be set by the caller.
+                  premiumPayable:
+                    type: object
+                    nullable: true
+                    description: The premium payable entity for the activity. Returns null as this needs to be set by the caller.
+                  note:
+                    type: object
+                    nullable: true
+                    description: A note to be included when adding an activity. Returns null as this needs to be set by the caller.
+              examples:
+                ActivityCodeDefaultResponseExample:
+                  value:
+                    code:
+                      id: 00000000-0000-0000-0000-000000000000
+                    owner:
+                      type: EMPLOYEE
+                      id: 00000000-0000-0000-0000-000000000001
+                    description: Call Alice Smith regarding policy renewal
+                    association:
+                      type: ATTACHMENT
+                      id: f034e97f-991e-48ed-b632-9ca67a953bf5
+                      organization:
+                        agency:
+                          id: 00000000-0000-0000-0000-000000000002
+                        branch:
+                          id: 00000000-0000-0000-0000-000000000003
+                    status: OPEN
+                    closed:
+                      successful: true
+                    startFollowUpOn: ''
+                    endFollowUpOn: ''
+                    followUpReminderOn: ''
+                    issuingCompany: null
+                    premiumPayable: null
+                    note: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - oAuth:
+          - 'epic/activity:write' 
+          - 'epic/activity:all'         
+  /owners/employees:
+    get:
+      summary: Get Employee Activity Owners
+      operationId: get-activities-owners-employees
+      description: Retrieve a list of employees that can be owners to be used when filtering a list of activities or adding an activity
+      tags:
+        - Activities
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/ClientCorrelationId'
+        - $ref: '#/components/parameters/AssociationType'
+        - $ref: '#/components/parameters/AssociatedId'
+        - $ref: '#/components/parameters/AgencyId'
+        - $ref: '#/components/parameters/BranchId'
+      responses:
+        '200':
+          description: Employee Owners Found
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          employeeOwners:
+                            type: array
+                            items:
+                              type: object
+                              allOf:
+                                - $ref: '#/components/schemas/Owner'
+                              properties:
+                                _links:
+                                  type: object
+                                  properties:
+                                    self:
+                                      $ref: '#/components/schemas/HALlink'
+              examples:
+                employeeOwnersResponseExample:
+                  value:
+                    total: 50
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/owners/employees?offset=10&limit=2'
+                      prev:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/owners/employees?offset=8&limit=2'
+                      next:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/owners/employees?offset=12&limit=2'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/owners/employees?limit=2'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/owners/employees?offset=48&limit=2'
+                    _embedded:
+                      employeeOwners:
+                        - id: 00000000-0000-0000-0000-000000000000
+                          code: SMIMI1
+                          name: Mike Smith
+                        - id: 00000000-0000-0000-0000-000000000001
+                          code: SMIJO1
+                          name: John Smith
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - oAuth:
+          - 'epic/owners:read'
+  /owners/work-groups:
+    get:
+      summary: Get Work group Activity Owners
+      operationId: get-activities-owners-work-groups
+      description: Retrieve a list of work groups that can be owners to be used when filtering a list of activities or adding an activity
+      tags:
+        - Activities
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/ClientCorrelationId'
+      responses:
+        '200':
+          description: Work group Owners Found
+          content:
+            application/hal+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HALcollection'
+                  - type: object
+                    properties:
+                      _embedded:
+                        type: object
+                        properties:
+                          workGroupOwners:
+                            type: array
+                            items:
+                              type: object
+                              allOf:
+                                - $ref: '#/components/schemas/Owner'
+                              properties:
+                                _links:
+                                  type: object
+                                  properties:
+                                    self:
+                                      $ref: '#/components/schemas/HALlink'
+              examples:
+                workGroupOwnersResponseExample:
+                  value:
+                    total: 50
+                    _links:
+                      self:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/owners/work-groups?offset=10&limit=2'
+                      prev:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/owners/work-groups?offset=8&limit=2'
+                      next:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/owners/work-groups?offset=12&limit=2'
+                      first:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/owners/work-groups?limit=2'
+                      last:
+                        href: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/owners/work-groups?offset=48&limit=2'
+                    _embedded:
+                      workGroupOwners:
+                        - id: 00000000-0000-0000-0000-000000000000
+                          code: SMIMI1
+                          name: Mike Smith
+                        - id: 00000000-0000-0000-0000-000000000001
+                          code: SMIJO1
+                          name: John Smith
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - oAuth:
+          - 'epic/owners:read'
+components:
+  schemas:
+    Error:
+      type: object
+      title: ''
+      readOnly: true
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        traceId:
+          type: string
+        additionalDetails:
+          type: array
+          items:
+            type: object
+    HALobject:
+      type: object
+      properties:
+        _links:
+          type: object
+          description: Related links
+          properties:
+            self:
+              $ref: '#/components/schemas/HALlink'
+          additionalProperties:
+            $ref: '#/components/schemas/HALlink'
+        _embedded:
+          type: object
+    HALlink:
+      type: object
+      description: 'https://datatracker.ietf.org/doc/html/draft-kelly-json-hal-08#section-4.1.1'
+      required:
+        - href
+      properties:
+        href:
+          type: string
+        templated:
+          type: boolean
+        type:
+          type: string
+        deprecation:
+          type: string
+        name:
+          type: string
+        profile:
+          type: string
+        title:
+          type: string
+        hreflang:
+          type: string
+    HALcollection:
+      type: object
+      properties:
+        total:
+          type: integer
+        _links:
+          properties:
+            self:
+              $ref: '#/components/schemas/HALlink'
+            prev:
+              $ref: '#/components/schemas/HALlink'
+            next:
+              $ref: '#/components/schemas/HALlink'
+            first:
+              $ref: '#/components/schemas/HALlink'
+            last:
+              $ref: '#/components/schemas/HALlink'
+        _embedded:
+          type: object
+          additionalProperties: true
+    ItemTypeEnum:
+        type: string
+        description: The type of the item with a relationship to this activity.
+        enum:
+          - ACTIVITY
+          - ATTACHMENT
+          - BANK_RECONCILIATION
+          - BILL
+          - BINDER
+          - BUDGET
+          - BROKER
+          - CANCELLATION
+          - CARRIER_SUBMISSION
+          - CERTIFICATE
+          - CLAIM
+          - CLIENT
+          - COMPANY
+          - CONTACT
+          - DETAIL_LINE
+          - DIRECT_BILL_RECONCILIATION
+          - DIRECT_BILL_RECONCILIATION_MASTER
+          - DISBURSEMENT
+          - EMPLOYEE
+          - EVIDENCE_OF_INSURANCE
+          - FINANCE_COMPANY
+          - GENERAL_LEDGER_EXPORT
+          - GENERATE_JOURNAL_ENTRIES
+          - GOVERNMENT_PAYABLE_RECONCILIATION
+          - GOVERNMENT_PAYABLE_RECONCILIATION_MASTER
+          - IMPORT_DIRECT_BILL_RECONCILIATION
+          - IMPORT_RECEIPT
+          - JOURNAL_ENTRY
+          - LINE
+          - MARKETING_CAMPAIGN
+          - MASTER_MARKETING_SUBMISSION
+          - OPPORTUNITIES
+          - OTHER_INTEREST
+          - POLICY
+          - POLICY_CHECKING
+          - PREMIUM_RECONCILIATION
+          - PREMIUM_RECONCILIATION_MASTER
+          - PRODUCER_BROKER_RECONCILIATION
+          - PRODUCER_BROKER_RECONCILIATION_MASTER
+          - QUOTE
+          - RECEIPT
+          - RECEIPT_TRANSACTION
+          - SERVICES
+          - TRANSACTION
+          - VENDOR
+          - VOUCHER
+    SystemActivityAssociationTypes:
+        type: string
+        description: The type of the item with a relationship to this activity.
+        enum:
+          - ACTIVITY
+          - BROKER
+          - CLAIM
+          - CLIENT
+          - COMPANY
+          - EMPLOYEE
+          - FINANCE_COMPANY
+          - OPPORTUNITIES
+          - OTHER_INTEREST
+          - VENDOR
+          - MASTER_MARKETING_SUBMISSION
+          - CARRIER_SUBMISSION
+          - SERVICES
+          - POLICY
+    Activity:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        code:
+          type: object
+          description: The activity code assigned to the activity. Use the GET Activity Codes call to retrieve a list of activity codes that can be used to POST an activity
+          properties:
+            id:
+              type: string
+              description: The id of the activity code
+            code:
+              type: string
+              description: The activity code
+              readOnly: true
+        activityCode:
+          type: object
+          deprecated: true
+          description: The activity code assigned to the activity. Use the GET Activity Codes call to retrieve a list of activity codes that can be used to POST an activity
+          properties:
+            id:
+              type: string
+              deprecated: true
+              description: The id of the activity code
+            code:
+              type: string
+              deprecated: true
+              description: The activity code
+              readOnly: true
+        description:
+          type: string
+          description: 'The activity''s description. To use the default from the activity code when adding an activity, provide the detail value returned in the Get Activity Codes call for the selected activity code. Activity description macro variables will not be resolved when adding an activity.'
+        account:
+          title: Account
+          description: The account that the activity is associated to
+          type: object
+          readOnly: true
+          properties:
+            type:
+              type: string
+              description: The type of account
+              enum:
+                - BROKER
+                - CLIENT
+                - COMPANY
+                - EMPLOYEE
+                - FINANCE_COMPANY
+                - OTHER_INTEREST
+                - VENDOR
+            id:
+              type: string
+              description: The identifier of the account
+            lookupCode:
+              type: string
+              description: The account's lookup code
+            name:
+              type: string
+              description: The name of the account
+        association:
+          title: Association
+          description: The item that the activity is associated to
+          type: object
+          properties:
+            type:
+              $ref: '#/components/schemas/ItemTypeEnum'
+            id:
+              type: string
+              description: The identifier of the item that the activity is associated to
+            organization:
+              $ref: '#/components/schemas/Organization'
+        owner:
+          title: owner
+          type: object
+          description: 'The owner of the activity. Use the GET Employee Owners and GET Work Group Owners calls to retrieve a list of valid values that can be provided when adding an activity. On POST if the owner is not provided then the value configured for the activity code will be used. If no value is configured for the activity code and no value is provided, then a validation error will be returned.'
+          properties:
+            type:
+              type: string
+              description: The type of owner
+              enum:
+                - EMPLOYEE
+                - WORK_GROUP
+            id:
+              description: The identifier of the owner
+              type: string
+            code:
+              type: string
+              description: 'The lookup code if the owner is an employee, or the code if the owner is a work group'
+              readOnly: true
+            name:
+              type: string
+              description: The name of the owner
+              readOnly: true
+        enteredBy:
+          $ref: '#/components/schemas/UserAndDate'
+        lastUpdatedBy:
+          $ref: '#/components/schemas/UserAndDate'
+        startFollowUpOn:
+          type: string
+          description: The follow up start date and time
+        endFollowUpOn:
+          type: string
+          description: The follow up end date and time
+        followUpReminderOn:
+          type: string
+          description: The follow up reminder date and time
+        issuingCompany:
+          $ref: '#/components/schemas/IssuingCompany'
+        premiumPayable:
+          $ref: '#/components/schemas/PremiumPayableEntity'
+        status:
+          type: string
+          description: The status of the activity. On POST if the status is not provided then the status and closed values (if applicable) configured for the activity code will be used
+          enum:
+            - OPEN
+            - CLOSED
+        closed:
+          title: Closed
+          description: 'The closed details for a closed activity. On POST if all or part of this is not provided then the default from the activity code will be used. If the required combination of status, successful and unsuccessful reason fields are not provided and not configured for the activity code, then a validation message will be returned'
+          type: object
+          properties:
+            successful:
+              type: boolean
+              description: The successful status of a closed activity.  Required if the status of the activity is closed.
+            unsuccessfulReason:
+              type: string
+              description: The reason that the activity was closed unsuccessfuly. Required if the status of the activity is closed and the successful property is false. Use the Get Unsuccessful Reasons call to retrieve a list of valid values that can be provided when adding an activity.
+    SystemActivity:
+      type: object
+      properties:
+        association:
+          title: Association
+          description: The item that the activity is associated to
+          type: object
+          properties:
+            type:
+              $ref: '#/components/schemas/SystemActivityAssociationTypes'
+            id:
+              type: string
+              description: The identifier of the item that the activity is associated to
+            organization:
+              $ref: '#/components/schemas/Organization'
+        systemEvent:
+          type: object
+          description: The system event used to generate the activity. 
+          properties:
+            id:
+              type: string
+              description: The id of the system event code used to generate the activity
+            name:
+              type: string
+              description: The name of the system event code used to generate the activity
+              readOnly: true
+    ActivityCodeLookup:
+      title: ActivityCode
+      type: object
+      properties:
+        id:
+          type: string
+          description: The identifier of the activity code
+        code:
+          type: string
+          description: The activity code
+          readOnly: true
+        description:
+          type: string
+          description: the description of the activity code
+          readOnly: true
+    ActivityList:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          description: the identifier of the activity
+        code:
+          type: string
+          description: The activity code of the activity
+        description:
+          type: string
+          description: the description of the activity
+        associationType:
+          $ref: '#/components/schemas/ItemTypeEnum'
+        owner:
+          title: owner
+          type: object
+          description: The owner of the activity
+          properties:
+            type:
+              type: string
+              description: The type of owner
+              enum:
+                - EMPLOYEE
+                - WORK_GROUP
+            id:
+              type: string
+              description: The identifier of the owner
+            code:
+              type: string
+              description: The lookup code of an employee owner or the code of the work group owner
+            name:
+              type: string
+              description: The name of the owner
+        enteredBy:
+          $ref: '#/components/schemas/UserAndDate'
+        lastUpdatedBy:
+          $ref: '#/components/schemas/UserAndDate'
+        startFollowUpOn:
+          type: string
+          description: The follow up start date and time
+        endFollowUpOn:
+          type: string
+          description: The follow up end date and time
+        status:
+          type: string
+          description: The status of the activity
+          enum:
+            - OPEN
+            - CLOSED
+    ActivityNote:
+      title: ActivityNote
+      type: object
+      description: A note to be included when adding an activity.
+      properties:
+        id:
+          type: string
+          description: The identifier of the activity note
+          readOnly: true
+        accessLevel:
+          $ref: '#/components/schemas/ActivityNoteAccessLevel'
+        content:
+          type: string
+          description: The text to include in the note
+        enteredBy:
+          $ref: '#/components/schemas/UserAndDate'
+    ActivityNoteAccessLevel:
+      title: AccessLevel
+      type: object
+      description: The access level for the note to be added. Use the Get Note Access Levels call to retrieve a list of valid values.
+      properties:
+        id:
+          type: string
+          description: The identifier of the access level
+        description:
+          type: string
+          description: The description of the access level
+          readOnly: true
+    Agency:
+      title: Agency
+      type: object
+      properties:
+        id:
+          type: string
+          description: The idenitifier of the agency
+    Branch:
+      title: Branch
+      type: object
+      properties:
+        id:
+          type: string
+          description: The identifier of the branch
+    IssuingCompany:
+      title: IssuingCompany
+      type: object
+      description: The issuing company for the activity. Use the Get Issuing Companies call to retrieve a list of valid values that can be provided when adding an activity. On POST if the issuing company is not provided then the value configured for the activity code will be used.
+      properties:
+        id:
+          type: string
+          description: The identifier of the issuing company
+        code:
+          type: string
+          description: The company's lookup code
+          readOnly: true
+        name:
+          type: string
+          description: The company's name
+          readOnly: true
+    Organization:
+      title: Organization
+      type: object
+      writeOnly: true
+      description: 'Required when associating to a client. Use the agency and branch combination for the desired activity association. Also required when associating to a general ledger item (e.g. Receipt). Use the agency for the desired activity association.'
+      properties:
+        agency:
+          $ref: '#/components/schemas/Agency'
+        branch:
+          $ref: '#/components/schemas/Branch'
+    Owner:
+      title: Owner
+      description: The owner of the activity.  Can be an employee or a work group
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the employee or work group
+        code:
+          type: string
+          description: The code representing the employee or work group
+        name:
+          type: string
+          description: The name of the employee or work group
+    PremiumPayableEntity:
+      title: PremiumPayable
+      type: object
+      description: The premium payable entity for the activity. Use the Get Premium Payable Entities call to retrieve a list of valid values that can be provided when adding an activity. On POST if the premium payable entity is not provided then the value configured for the activity code will be used.
+      properties:
+        type:
+          type: string
+          description: The premium payable type
+          enum:
+            - BROKER_EXTERNAL
+            - BROKER_INTERNAL
+            - CARRIER
+        id:
+          type: string
+          description: The identifier of the premium payable entity
+        lookupCode:
+          type: string
+          readOnly: true
+          description: The premium payable entity's lookup code
+        name:
+          type: string
+          readOnly: true
+          description: The name of the premium payable entity
+    UnsuccessfulReason:
+      title: UnsuccessfulReason
+      type: object
+      description: The reason that an activity was closed unsuccessfully
+      properties:
+        id:
+          type: string
+          description: The identifier of the unsuccessful reason.  This field will contain the guid identifier when in a system that supports it, otherwise it will be in the numeric format.
+        reason:
+          type: string
+          description: The reason the activity was closed unsuccessfully.
+    UserAndDate:
+      title: UserAndDate
+      type: object
+      readOnly: true
+      properties:
+        userCode:
+          type: string
+        date:
+          type: string
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            unauthorizedExample:
+              value:
+                type: 'https://api.appliedsystems.com/doc/problem/unauthorized'
+                title: Unauthorized
+                status: 401
+                detail: You are not authorized to access this resource
+                instance: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities'
+                traceId: '1234567890123456789'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            forbiddenExample:
+              value:
+                type: 'https://api.appliedsystems.com/doc/problem/forbidden'
+                title: Forbidden
+                status: 403
+                detail: You are forbidden to access this resource
+                instance: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities'
+                traceId: '1234567890123456789'
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            notFoundExample:
+              value:
+                type: 'https://api.appliedsystems.com/doc/problem/notfound'
+                title: Not Found
+                status: 404
+                detail: The specified resource was not found
+                instance: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities'
+                traceId: '1234567890123456789'
+    BadRequest:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            badRequestExample:
+              value:
+                type: 'https://api.appliedsystems.com/doc/problem/badrequest'
+                title: Bad Request
+                status: 400
+                detail: One or more arguments are invalid
+                instance: 'https://api.mock.myappliedproducts.com/workflow-management/v1/activities/000'
+                traceId: '1234567890123456789'
+  parameters:
+    AgencyId:
+      name: agencyId
+      in: query
+      description: Required only if associationType is CLIENT
+      schema:
+        type: string
+    AssociatedId:
+      name: associatedId
+      in: query
+      description: The identifier of the item that the activity will be associated to
+      schema:
+        type: string
+    AssociationType:
+      name: associationType
+      in: query
+      description: the type of item that the activity is associated to
+      schema:
+        $ref: '#/components/schemas/ItemTypeEnum'
+    BranchId:
+      name: branchId
+      in: query
+      description: Required only if associationType is CLIENT
+      schema:
+        type: string
+    Offset:
+      name: offset
+      in: query
+      description: Record number to start pulling from
+      schema:
+        type: integer
+        minimum: 0
+    Limit:
+      name: limit
+      in: query
+      description: Number of records to pull.
+      schema:
+        type: integer
+        default: 100
+        minimum: 1
+        maximum: 500
+    Embed:
+      name: embed
+      in: query
+      style: form
+      explode: false
+      description: Include links to additional related requests
+      schema:
+        type: array
+        items:
+          type: string
+    ClientCorrelationId:
+      name: Asi-Client-Correlation-Id
+      in: header
+      schema:
+        type: string
+    CultureCode:
+      name: Accept-Language
+      in: header
+      description: Designates the target culture to return descriptions in. (ie. en-US)
+      schema:
+        type: string
+    ActivityId:
+      name: activityId
+      in: path
+      required: true
+      description: The identifier of the activity
+      schema:
+        type: string
+    ActivityCodeId:
+      name: activityCodeId
+      in: path
+      required: true
+      description: The unique identifier of the activity code
+      schema:
+        type: string
+    ClientId:
+      name: clientId
+      in: path
+      required: true
+      description: The identifier of the client
+      schema:
+        type: string
+    AssociatedPolicyId:
+      name: associatedPolicyId
+      in: query
+      description: Filter activities by the policy that it is associated to.  Results will include activities that are associated to lines that belong to that policy.
+      schema:
+        type: string
+    IndioSubmissionId:
+      name: indioSubmissionId
+      in: query
+      description: Filter activities by the Indio Submission that it is associated to.
+      schema:
+        type: string
+    EnteredByDate:
+      name: enteredByDate
+      in: query
+      description: The date the activity was entered on
+      schema:
+        type: string
+        description: Filter activities entered on the specified date
+    EnteredByDate_after:
+      name: enteredByDate_after
+      in: query
+      description: Filter activities entered after the specified date
+      schema:
+        type: string
+    EnteredByDate_before:
+      name: enteredByDate_before
+      in: query
+      description: The date that activities need entered before
+      schema:
+        type: string
+        description: Filter activities entered before the specified date
+    OwnerEmployeeId:
+      name: ownerEmployeeId
+      in: query
+      description: Filter activities by an owner that is an employee.
+      schema:
+        type: string
+    OwnerWorkGroupId:
+      name: ownerWorkGroupId
+      in: query
+      description: Filter activities by an owner that is a work group.
+      schema:
+        type: string
+    PremiumPayableType:
+      name: premiumPayableType
+      in: query
+      description: The type of premium payable entity
+      required: true
+      schema:
+        type: string
+        enum:
+          - BROKER_EXTERNAL
+          - BROKER_INTERNAL
+          - CARRIER
+    Status:
+      name: status
+      in: query
+      description: The status of the activity
+      schema:
+        type: string
+        enum:
+          - OPEN
+          - CLOSED
+        description: Filter activities by their status
+    Code:
+      name: code
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Filter activity codes by code
+    IncludeSystemEventActivityCodes:
+      name: includeSystemEventActivityCodes
+      in: query
+      required: false
+      schema:
+        type: boolean
+      description: Determines if activity codes linked to system events that are set to "Generate activity for events automatically" will be included in the response.
+  securitySchemes:
+    oAuth:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: 'https://api.mock.myappliedproducts.com/v1/auth/connect/token'
+          scopes:
+            'epic/activity:read': Grants activities read access
+            'epic/activity:write': Grants activities write access
+            'epic/activity:all': Grants activities all access
+            'epic/activity-codes:create': Grants activity codes create access
+            'epic/activity-codes:all': Grants activity codes all access
+            'epic/owners:read': Grants activity owners read access
+security:
+  - oAuth: []
